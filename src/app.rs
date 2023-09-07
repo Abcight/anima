@@ -15,6 +15,7 @@ pub struct Project {
 pub struct AnimaApp {
 	tree: Tree<Box<dyn Tab>>,
 	project: Option<Project>,
+	project_dirty: bool
 }
 
 impl AnimaApp {
@@ -29,12 +30,18 @@ impl AnimaApp {
 
 		Self {
 			tree,
+			project_dirty: true,
 			..Default::default()
 		}
 	}
 }
 
 impl AnimaApp {
+	fn set_project(&mut self, project: Option<Project>) {
+		self.project = project;
+		self.project_dirty = true;
+	}
+
 	#[cfg(not(target_arch = "wasm32"))]
 	fn new_project(&mut self) {
 		let future = async {
@@ -61,7 +68,7 @@ impl AnimaApp {
 		let Ok(json) = serde_json::to_string_pretty(&project) else { return };
 		std::fs::write(&path, json).ok();
 
-		self.project = Some(project);
+		self.set_project(Some(project));
 	}
 
 	#[cfg(target_arch = "wasm32")]
@@ -122,7 +129,7 @@ impl AnimaApp {
 
 		project.root = Some(path);
 
-		self.project = Some(project);
+		self.set_project(Some(project));
 	}
 
 	#[cfg(target_arch = "wasm32")]
@@ -132,7 +139,7 @@ impl AnimaApp {
 }
 
 impl eframe::App for AnimaApp {
-	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+	fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
 		egui::TopBottomPanel::top("top").show(ctx, |ui| {
 			egui::menu::bar(ui, |ui| {
 				ui.menu_button("File", |ui| {
@@ -152,7 +159,24 @@ impl eframe::App for AnimaApp {
 			});
 		});
 
+		if self.project_dirty {
+			let title = self.project
+							.as_ref()
+							.and_then(|x| match &x.root {
+								Some(root) => root.to_str(),
+								None => Some("virtual space"),
+							})
+							.unwrap_or("no project");
+			frame.set_window_title(&format!("Anima ({title})"));
+		}
+
 		egui::CentralPanel::default().show(ctx, |ui| {
+			if self.project.is_none() {
+				ui.centered_and_justified(|ui| {
+					ui.label("No project loaded!\nGo to file > new/open.")
+				});
+				return;
+			}
 			egui_dock::DockArea::new(&mut self.tree).show_inside(ui, &mut TabViewer {});
 		});
 	}
