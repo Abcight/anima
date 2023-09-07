@@ -1,26 +1,35 @@
+use egui::*;
+
 use super::Tab;
 
 pub struct Resources {
-	items: Vec<String>,
+	component_filter: String,
+	scene_filter: String
 }
 
 impl Default for Resources {
 	fn default() -> Self {
 		Self {
-			items: vec![
-				String::from("Test1"),
-				String::from("Test2"),
-				String::from("Test6"),
-			],
+			component_filter: String::new(),
+			scene_filter: String::new()
 		}
 	}
 }
 
 impl Tab for Resources {
 	fn ui(&mut self, ui: &mut egui::Ui) {
-		for item in &self.items {
-			ui.label(item);
-		}
+		ui.collapsing("Components", |ui| {
+			ui.add(TextEdit::singleline(&mut self.component_filter).hint_text("Search..."));
+			ScrollArea::vertical().max_height(ui.available_height() / 2.0).show(ui, |ui| {
+
+			});
+		});
+		ui.collapsing("Scenes", |ui| {
+			ui.add(TextEdit::singleline(&mut self.scene_filter).hint_text("Search..."));
+			ScrollArea::vertical().max_height(ui.available_height() / 2.0).show(ui, |ui| {
+
+			});
+		});
 	}
 
 	fn title<'a>(&self) -> &'a str {

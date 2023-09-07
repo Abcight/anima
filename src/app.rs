@@ -94,6 +94,7 @@ impl AnimaApp {
 		let Some(path) = futures::executor::block_on(future) else { return };
 
 		project.root = Some(path.to_owned());
+		self.project_dirty = true;
 
 		let Ok(json) = serde_json::to_string_pretty(project) else { return };
 
@@ -145,15 +146,18 @@ impl eframe::App for AnimaApp {
 				ui.menu_button("File", |ui| {
 					if ui.button("New").clicked() {
 						self.new_project();
+						ui.close_menu();
 					}
 					ui.scope(|ui| {
 						ui.set_enabled(self.project.is_some());
 						if ui.button("Save").clicked() {
 							self.save_project();
+							ui.close_menu();
 						}
 					});
 					if ui.button("Open").clicked() {
 						self.open_project();
+						ui.close_menu();
 					}
 				});
 			});
