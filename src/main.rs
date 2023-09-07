@@ -1,6 +1,7 @@
 #![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod tabs;
 use anima::AnimaApp;
 
 #[cfg(not(target_arch = "wasm32"))]
