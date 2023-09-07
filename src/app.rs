@@ -1,20 +1,36 @@
+use egui_dock::{NodeIndex, Tree};
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use serde::{Serialize, Deserialize};
+
+use crate::tabs::*;
 
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct Project {
-	root: Option<PathBuf>
+	virtual_components: Vec<String>,
+	virtual_scenes: Vec<String>,
+	root: Option<PathBuf>,
 }
 
 #[derive(Default)]
 pub struct AnimaApp {
-	project: Option<Project>
+	tree: Tree<Box<dyn Tab>>,
+	project: Option<Project>,
 }
 
 impl AnimaApp {
 	pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
 		catppuccin_egui::set_theme(&cc.egui_ctx, catppuccin_egui::MOCHA);
-		Default::default()
+
+		let hierarchy = Box::<Resources>::default();
+		let preview = Box::<Preview>::default();
+
+		let mut tree: Tree<Box<dyn Tab>> = Tree::new(vec![hierarchy]);
+		tree.split_right(NodeIndex::root(), 0.2, vec![preview]);
+
+		Self {
+			tree,
+			..Default::default()
+		}
 	}
 }
 
@@ -38,7 +54,8 @@ impl AnimaApp {
 		project_root.pop();
 
 		let project = Project {
-			root: Some(project_root)
+			root: Some(project_root),
+			..Default::default()
 		};
 
 		let Ok(json) = serde_json::to_string_pretty(&project) else { return };
@@ -53,8 +70,8 @@ impl AnimaApp {
 	}
 
 	#[cfg(not(target_arch = "wasm32"))]
-	fn save_project(&self) {
-		let Some(project) = &self.project else { return };
+	fn save_project(&mut self) {
+		let Some(project) = &mut self.project else { return };
 
 		let future = async {
 			let file = rfd::AsyncFileDialog::new()
@@ -68,6 +85,9 @@ impl AnimaApp {
 		};
 
 		let Some(path) = futures::executor::block_on(future) else { return };
+
+		project.root = Some(path.to_owned());
+
 		let Ok(json) = serde_json::to_string_pretty(project) else { return };
 
 		std::fs::write(path, json).ok();
@@ -89,8 +109,11 @@ impl AnimaApp {
 				.await;
 
 			match file {
-				Some(file) => Some((file.path().to_owned(), String::from_utf8(file.read().await).ok())),
-				None => None
+				Some(file) => Some((
+					file.path().to_owned(),
+					String::from_utf8(file.read().await).ok(),
+				)),
+				None => None,
 			}
 		};
 
@@ -130,26 +153,7 @@ impl eframe::App for AnimaApp {
 		});
 
 		egui::CentralPanel::default().show(ctx, |ui| {
-			ui.heading("View");
-			ui.label(match &self.project {
-				Some(project) => match &project.root {
-					Some(root) => root.to_str().unwrap_or_default(),
-					None => "Project open, vfs only"
-				},
-				None => "No project!"
-			});
-			ui.hyperlink("https://github.com/abcight/anima");
-			ui.add(egui::github_link_file!(
-				"https://github.com/abcight/anima/blob/master/",
-				"Source code."
-			));
-			egui::warn_if_debug_build(ui);
-		});
-
-		egui::TopBottomPanel::bottom("bottom").resizable(true).show(ctx, |ui| {
-			egui::ScrollArea::vertical().auto_shrink([false; 2]).show(ui, |ui| {
-
-			});
+			egui_dock::DockArea::new(&mut self.tree).show_inside(ui, &mut TabViewer {});
 		});
 	}
 }
