@@ -2,13 +2,35 @@ use egui_dock::{NodeIndex, Tree};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-use crate::tabs::*;
+use crate::{tabs::*, api::Scene};
 
-#[derive(Serialize, Deserialize, Default, Debug)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct Project {
-	virtual_components: Vec<String>,
-	virtual_scenes: Vec<String>,
-	root: Option<PathBuf>,
+	pub scenes: Vec<Scene>,
+	root_dir: Option<PathBuf>,
+}
+
+impl Project {
+	pub fn create_scene(&mut self, name: &str) {
+		let Some(root) = self.root_dir.as_ref() else { return; };
+		let mut root = root.clone();
+
+		root.push(format!("{name}.lua"));
+
+		if !root.exists() {
+			std::fs::write(&root, "-- your first Anima scene!").ok();
+		}
+
+		let scene = Scene::new(root);
+
+		self.scenes.push(scene);
+	}
+
+	pub fn assert_default_scene(&mut self) {
+		if self.scenes.is_empty() {
+			self.create_scene("hello_anima");
+		}
+	}
 }
 
 #[derive(Default)]
@@ -61,7 +83,7 @@ impl AnimaApp {
 		project_root.pop();
 
 		let project = Project {
-			root: Some(project_root),
+			root_dir: Some(project_root),
 			..Default::default()
 		};
 
@@ -93,7 +115,7 @@ impl AnimaApp {
 
 		let Some(path) = futures::executor::block_on(future) else { return };
 
-		project.root = Some(path.to_owned());
+		project.root_dir = Some(path.to_owned());
 		self.project_dirty = true;
 
 		let Ok(json) = serde_json::to_string_pretty(project) else { return };
@@ -125,10 +147,13 @@ impl AnimaApp {
 			}
 		};
 
-		let Some((path, Some(data))) = futures::executor::block_on(future) else { return };
+		let Some((mut path, Some(data))) = futures::executor::block_on(future) else { return };
 		let Ok(mut project) = serde_json::from_str::<Project>(&data) else { return };
 
-		project.root = Some(path);
+		path.pop();
+
+		project.root_dir = Some(path);
+		project.assert_default_scene();
 
 		self.set_project(Some(project));
 	}
@@ -166,7 +191,7 @@ impl eframe::App for AnimaApp {
 		if self.project_dirty {
 			let title = self.project
 							.as_ref()
-							.and_then(|x| match &x.root {
+							.and_then(|x| match &x.root_dir {
 								Some(root) => root.to_str(),
 								None => Some("virtual space"),
 							})
@@ -181,7 +206,8 @@ impl eframe::App for AnimaApp {
 				});
 				return;
 			}
-			egui_dock::DockArea::new(&mut self.tree).show_inside(ui, &mut TabViewer {});
+			let Some(project) = self.project.as_mut() else { return };
+			egui_dock::DockArea::new(&mut self.tree).show_inside(ui, &mut TabViewer { project });
 		});
 	}
 }

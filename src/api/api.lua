@@ -1,9 +1,26 @@
 -------------------------------------------------------------
+--------- █████╗  ███╗   ██╗██╗███╗   ███╗ █████╗  ----------
+--------- ██╔══██╗████╗  ██║██║████╗ ████║██╔══██╗ ----------
+--------- ███████║██╔██╗ ██║██║██╔████╔██║███████║ ----------
+--------- ██╔══██║██║╚██╗██║██║██║╚██╔╝██║██╔══██║ ----------
+--------- ██║  ██║██║ ╚████║██║██║ ╚═╝ ██║██║  ██║ ----------
+--------- ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝     ╚═╝╚═╝  ╚═╝ ----------
+-------------------------------------------------------------
+
+-------------------------------------------------------------
+---             Use this file as a reference!             ---
+---                 🌏︎ abcight.com/anima                  ---
+---                ✉ contact@abcight.com                 ---
+-------------------------------------------------------------
+
+-------------------------------------------------------------
 --- Metatables! These are the types supported by the API. ---
+--- (These are purposefully hidden from the user! Scram!) ---
 -------------------------------------------------------------
 
 prototypes = {}
 
+---@class vec2
 prototypes.vec2 = {
 	x = 0,
 	y = 0,
@@ -23,6 +40,7 @@ prototypes.vec2 = {
 	end
 }
 
+---@class vec3
 prototypes.vec3 = {
 	x = 0,
 	y = 0,
@@ -45,6 +63,7 @@ prototypes.vec3 = {
 	end
 }
 
+---@class color
 prototypes.color = {
 	r = 0,
 	g = 0,
@@ -71,14 +90,28 @@ prototypes.color = {
 ---------- Shorthands for creating various objects ----------
 -------------------------------------------------------------
 
+---Creates a two-dimensional vector (x, y).
+---@param x number
+---@param y number
+---@return vec2
 function vec2(x, y)
 	return prototypes.vec2.new(x, y)
 end
 
+---Creates a three-dimensional vector (x, y, z).
+---@param x number
+---@param y number
+---@param z number
+---@return vec3
 function vec3(x, y, z)
 	return prototypes.vec3.new(x, y, z)
 end
 
+---Creates a color from rgb values.
+---@param r number
+---@param g number
+---@param b number
+---@return color
 function rgb(r, g, b)
 	return prototypes.color.new(r, g, b)
 end
@@ -89,10 +122,10 @@ end
 
 ---Tries interpolating between a and b over t, if the underlying
 ---implementation exists.
----@param a any
----@param b any
+---@param a number | vec2 | vec3 | color
+---@param b number | vec2 | vec3 | color
 ---@param t number
----@return any
+---@return number | vec2 | vec3 | color
 function lerp(a, b, t)
 	if type(a) == "number" then
 		return (1.0 - t) * a + t * b
