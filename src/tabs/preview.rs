@@ -4,11 +4,11 @@ use super::Tab;
 pub struct Preview;
 
 impl Tab for Preview {
-	fn ui(&mut self, ui: &mut egui::Ui, project: &mut crate::app::Project) {
+	fn ui(&mut self, ui: &mut egui::Ui, _project: &mut crate::app::Project) {
 		ui.centered_and_justified(|ui| ui.label("Preview!!! Epic!"));
 	}
 
-	fn title<'a>(&self) -> &'a str {
+	fn title(&self) -> &str {
 		"Preview"
 	}
 }

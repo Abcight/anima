@@ -1,8 +1,11 @@
-use std::{path::{Path, PathBuf}, ops::Deref};
+use std::{
+	ops::Deref,
+	path::{Path, PathBuf},
+};
 
 use log::error;
 use mlua::Lua;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use super::Source;
 
@@ -10,7 +13,7 @@ use super::Source;
 pub struct Scene {
 	#[serde(skip)]
 	lua: Lua,
-	source: Source
+	source: Source,
 }
 
 impl Scene {
@@ -18,9 +21,7 @@ impl Scene {
 		let lua = Lua::new();
 		let source = Source::new(path);
 
-		Self {
-			lua, source,
-		}
+		Self { lua, source }
 	}
 
 	pub fn update(&mut self) {
@@ -35,11 +36,15 @@ impl Scene {
 		}
 	}
 
-	pub fn get_path(&self) -> &PathBuf {
-		self.source.get_path()
+	pub fn get_source(&mut self) -> &mut Source {
+		&mut self.source
 	}
 
 	pub fn get_name(&self) -> &str {
-		self.source.get_path().file_name().and_then(|x| x.to_str()).unwrap()
+		self.source
+			.get_path()
+			.file_name()
+			.and_then(|x| x.to_str())
+			.unwrap()
 	}
 }

@@ -4,15 +4,20 @@ pub use preview::Preview;
 pub mod resources;
 pub use resources::Resources;
 
+pub mod editor;
+pub use editor::Editor;
+
+pub mod syntax_highlighting;
+
 use crate::app::Project;
 
 pub trait Tab {
 	fn ui(&mut self, ui: &mut egui::Ui, project: &mut Project);
-	fn title<'a>(&self) -> &'a str;
+	fn title(&self) -> &str;
 }
 
 pub struct TabViewer<'a> {
-	pub project: &'a mut Project
+	pub project: &'a mut Project,
 }
 
 impl<'a> egui_dock::TabViewer for TabViewer<'a> {

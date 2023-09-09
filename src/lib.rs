@@ -1,6 +1,6 @@
 #![warn(clippy::all, rust_2018_idioms)]
 
+mod api;
 mod app;
 mod tabs;
-mod api;
 pub use app::AnimaApp;

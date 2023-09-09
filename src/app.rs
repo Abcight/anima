@@ -2,11 +2,12 @@ use egui_dock::{NodeIndex, Tree};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-use crate::{tabs::*, api::Scene};
+use crate::{api::Scene, tabs::*};
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct Project {
 	pub scenes: Vec<Scene>,
+	pub current_scene_idx: Option<usize>,
 	root_dir: Option<PathBuf>,
 }
 
@@ -37,7 +38,7 @@ impl Project {
 pub struct AnimaApp {
 	tree: Tree<Box<dyn Tab>>,
 	project: Option<Project>,
-	project_dirty: bool
+	project_dirty: bool,
 }
 
 impl AnimaApp {
@@ -46,9 +47,11 @@ impl AnimaApp {
 
 		let hierarchy = Box::<Resources>::default();
 		let preview = Box::<Preview>::default();
+		let editor = Box::<Editor>::default();
 
 		let mut tree: Tree<Box<dyn Tab>> = Tree::new(vec![hierarchy]);
-		tree.split_right(NodeIndex::root(), 0.2, vec![preview]);
+		let preview = tree.split_right(NodeIndex::root(), 0.2, vec![preview]);
+		tree.split_below(preview[0], 0.2, vec![editor]);
 
 		Self {
 			tree,
@@ -189,13 +192,14 @@ impl eframe::App for AnimaApp {
 		});
 
 		if self.project_dirty {
-			let title = self.project
-							.as_ref()
-							.and_then(|x| match &x.root_dir {
-								Some(root) => root.to_str(),
-								None => Some("virtual space"),
-							})
-							.unwrap_or("no project");
+			let title = self
+				.project
+				.as_ref()
+				.and_then(|x| match &x.root_dir {
+					Some(root) => root.to_str(),
+					None => Some("virtual space"),
+				})
+				.unwrap_or("no project");
 			frame.set_window_title(&format!("Anima ({title})"));
 		}
 

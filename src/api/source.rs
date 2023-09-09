@@ -1,6 +1,13 @@
 use notify::*;
-use serde::{Serialize, Deserialize};
-use std::{path::{PathBuf, Path}, sync::{Arc, atomic::{AtomicBool, Ordering}}, ops::{DerefMut, Deref}};
+use serde::{Deserialize, Serialize};
+use std::{
+	ops::{Deref, DerefMut},
+	path::{Path, PathBuf},
+	sync::{
+		atomic::{AtomicBool, Ordering},
+		Arc,
+	},
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct Source {
@@ -9,7 +16,7 @@ pub struct Source {
 	#[serde(skip)]
 	watcher: Option<RecommendedWatcher>,
 	#[serde(skip)]
-	refresh: Arc<AtomicBool>
+	refresh: Arc<AtomicBool>,
 }
 
 impl Source {
@@ -20,24 +27,27 @@ impl Source {
 			data: std::fs::read_to_string(path.as_ref()).unwrap_or_default(),
 			path: path.into(),
 			refresh: update_flag,
-			watcher: None
+			watcher: None,
 		}
 	}
 
 	pub fn assert_watcher_spawned(&mut self) {
 		if self.watcher.is_none() {
 			let watcher_flag = Arc::clone(&self.refresh);
-			
+
 			self.watcher = notify::recommended_watcher(move |res: Result<Event>| {
 				if let Ok(res) = res {
 					if res.kind.is_modify() {
 						watcher_flag.store(true, Ordering::Relaxed);
 					}
 				}
-			}).ok();
+			})
+			.ok();
 
 			if let Some(watcher) = self.watcher.as_mut() {
-				watcher.watch(self.path.as_ref(), notify::RecursiveMode::NonRecursive).ok();
+				watcher
+					.watch(self.path.as_ref(), notify::RecursiveMode::NonRecursive)
+					.ok();
 			}
 		}
 	}
@@ -59,9 +69,9 @@ impl Source {
 }
 
 impl AsRef<str> for Source {
-    fn as_ref(&self) -> &str {
+	fn as_ref(&self) -> &str {
 		&self.data
-    }
+	}
 }
 
 impl Deref for Source {
