@@ -1,3 +1,4 @@
+use log::error;
 use notify::*;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -65,6 +66,12 @@ impl Source {
 
 	pub fn get_path(&self) -> &PathBuf {
 		&self.path
+	}
+
+	pub fn save(&self) {
+		if let Err(e) = std::fs::write(&self.path, &self.data) {
+			error!("File save error! {e}");
+		}
 	}
 }
 

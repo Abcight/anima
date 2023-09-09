@@ -1,5 +1,7 @@
 use std::ops::DerefMut;
 
+use egui::{Key, Modifiers};
+
 use super::Tab;
 
 pub struct Editor {
@@ -48,6 +50,12 @@ impl Tab for Editor {
 					.desired_width(f32::INFINITY)
 					.layouter(&mut layouter),
 			);
+		});
+
+		ui.input_mut(|i| {
+			if i.consume_key(Modifiers::CTRL, Key::S) {
+				scene.get_source().save();
+			}
 		});
 	}
 
