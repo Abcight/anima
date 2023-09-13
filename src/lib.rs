@@ -4,4 +4,5 @@ mod api;
 mod app;
 mod project;
 mod tabs;
+mod theme;
 pub use app::AnimaApp;

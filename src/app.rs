@@ -13,8 +13,11 @@ pub struct AnimaApp {
 
 impl AnimaApp {
 	pub fn new(ctx: &mut miniquad::Context) -> Self {
-		let egui = Some(EguiMq::new(ctx));
-		// catppuccin_egui::set_theme(egui.egui_ctx(), catppuccin_egui::MOCHA);
+		use crate::theme::*;
+		let egui = EguiMq::new(ctx);
+		set_theme(egui.egui_ctx(), MOCHA);
+
+		let egui = Some(egui);
 
 		let hierarchy = Box::<Resources>::default();
 		let preview = Box::<Preview>::default();
