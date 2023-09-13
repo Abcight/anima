@@ -1,49 +1,20 @@
 use egui_dock::{NodeIndex, Tree};
-use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
 
-use crate::{api::Scene, tabs::*};
+use crate::{project::Project, tabs::*};
+use egui_miniquad::EguiMq;
+use miniquad::*;
 
-#[derive(Serialize, Deserialize, Default)]
-pub struct Project {
-	pub scenes: Vec<Scene>,
-	pub current_scene_idx: Option<usize>,
-	root_dir: Option<PathBuf>,
-}
-
-impl Project {
-	pub fn create_scene(&mut self, name: &str) {
-		let Some(root) = self.root_dir.as_ref() else { return; };
-		let mut root = root.clone();
-
-		root.push(format!("{name}.lua"));
-
-		if !root.exists() {
-			std::fs::write(&root, "-- your first Anima scene!").ok();
-		}
-
-		let scene = Scene::new(root);
-
-		self.scenes.push(scene);
-	}
-
-	pub fn assert_default_scene(&mut self) {
-		if self.scenes.is_empty() {
-			self.create_scene("hello_anima");
-		}
-	}
-}
-
-#[derive(Default)]
 pub struct AnimaApp {
+	egui: Option<EguiMq>,
 	tree: Tree<Box<dyn Tab>>,
 	project: Option<Project>,
 	project_dirty: bool,
 }
 
 impl AnimaApp {
-	pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-		catppuccin_egui::set_theme(&cc.egui_ctx, catppuccin_egui::MOCHA);
+	pub fn new(ctx: &mut miniquad::Context) -> Self {
+		let egui = Some(EguiMq::new(ctx));
+		// catppuccin_egui::set_theme(egui.egui_ctx(), catppuccin_egui::MOCHA);
 
 		let hierarchy = Box::<Resources>::default();
 		let preview = Box::<Preview>::default();
@@ -53,10 +24,13 @@ impl AnimaApp {
 		let preview = tree.split_right(NodeIndex::root(), 0.2, vec![preview]);
 		tree.split_below(preview[0], 0.2, vec![editor]);
 
+		let project = None;
+
 		Self {
+			egui,
 			tree,
+			project,
 			project_dirty: true,
-			..Default::default()
 		}
 	}
 }
@@ -85,10 +59,8 @@ impl AnimaApp {
 		let mut project_root = path.clone();
 		project_root.pop();
 
-		let project = Project {
-			root_dir: Some(project_root),
-			..Default::default()
-		};
+		let mut project = Project::default();
+		project.set_root_dir(Some(project_root));
 
 		let Ok(json) = serde_json::to_string_pretty(&project) else { return };
 		std::fs::write(&path, json).ok();
@@ -118,7 +90,7 @@ impl AnimaApp {
 
 		let Some(path) = futures::executor::block_on(future) else { return };
 
-		project.root_dir = Some(path.to_owned());
+		project.set_root_dir(Some(path.to_owned()));
 		self.project_dirty = true;
 
 		let Ok(json) = serde_json::to_string_pretty(project) else { return };
@@ -155,7 +127,7 @@ impl AnimaApp {
 
 		path.pop();
 
-		project.root_dir = Some(path);
+		project.set_root_dir(Some(path));
 		project.assert_default_scene();
 
 		self.set_project(Some(project));
@@ -167,51 +139,111 @@ impl AnimaApp {
 	}
 }
 
-impl eframe::App for AnimaApp {
-	fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-		egui::TopBottomPanel::top("top").show(ctx, |ui| {
-			egui::menu::bar(ui, |ui| {
-				ui.menu_button("File", |ui| {
-					if ui.button("New").clicked() {
-						self.new_project();
-						ui.close_menu();
-					}
-					ui.scope(|ui| {
-						ui.set_enabled(self.project.is_some());
-						if ui.button("Save").clicked() {
-							self.save_project();
+impl miniquad::EventHandler for AnimaApp {
+	fn update(&mut self, _ctx: &mut miniquad::Context) {}
+
+	fn draw(&mut self, mq_ctx: &mut miniquad::Context) {
+		mq_ctx.clear(Some((1., 1., 1., 1.)), None, None);
+		mq_ctx.begin_default_pass(miniquad::PassAction::clear_color(0.0, 0.0, 0.0, 1.0));
+		mq_ctx.end_render_pass();
+
+		let dpi_scale = mq_ctx.dpi_scale();
+
+		// draw the ui
+		let mut egui = None;
+		std::mem::swap(&mut self.egui, &mut egui);
+
+		egui.as_mut().unwrap().run(mq_ctx, |_mq_ctx, egui_ctx| {
+			egui_ctx.set_pixels_per_point(dpi_scale);
+
+			egui::TopBottomPanel::top("top").show(egui_ctx, |ui| {
+				egui::menu::bar(ui, |ui| {
+					ui.menu_button("File", |ui| {
+						if ui.button("New").clicked() {
+							self.new_project();
+							ui.close_menu();
+						}
+						ui.scope(|ui| {
+							ui.set_enabled(self.project.is_some());
+							if ui.button("Save").clicked() {
+								self.save_project();
+								ui.close_menu();
+							}
+						});
+						if ui.button("Open").clicked() {
+							self.open_project();
 							ui.close_menu();
 						}
 					});
-					if ui.button("Open").clicked() {
-						self.open_project();
-						ui.close_menu();
-					}
 				});
+			});
+
+			egui::CentralPanel::default().show(egui_ctx, |ui| {
+				if self.project.is_none() {
+					ui.centered_and_justified(|ui| {
+						ui.label("No project loaded!\nGo to file > new/open.")
+					});
+					return;
+				}
+				let Some(project) = self.project.as_mut() else { return };
+				egui_dock::DockArea::new(&mut self.tree)
+					.show_inside(ui, &mut TabViewer { project });
 			});
 		});
 
-		if self.project_dirty {
-			let title = self
-				.project
-				.as_ref()
-				.and_then(|x| match &x.root_dir {
-					Some(root) => root.to_str(),
-					None => Some("virtual space"),
-				})
-				.unwrap_or("no project");
-			frame.set_window_title(&format!("Anima ({title})"));
-		}
+		egui.as_mut().unwrap().draw(mq_ctx);
+		std::mem::swap(&mut self.egui, &mut egui);
 
-		egui::CentralPanel::default().show(ctx, |ui| {
-			if self.project.is_none() {
-				ui.centered_and_justified(|ui| {
-					ui.label("No project loaded!\nGo to file > new/open.")
-				});
-				return;
-			}
-			let Some(project) = self.project.as_mut() else { return };
-			egui_dock::DockArea::new(&mut self.tree).show_inside(ui, &mut TabViewer { project });
-		});
+		// draw the scene
+		// [...]
+
+		mq_ctx.commit_frame();
+	}
+
+	fn mouse_motion_event(&mut self, _: &mut Context, x: f32, y: f32) {
+		let Some(egui) = self.egui.as_mut() else { return };
+		egui.mouse_motion_event(x, y);
+	}
+
+	fn mouse_wheel_event(&mut self, _: &mut Context, dx: f32, dy: f32) {
+		let Some(egui) = self.egui.as_mut() else { return };
+		egui.mouse_wheel_event(dx, dy);
+	}
+
+	fn mouse_button_down_event(&mut self, ctx: &mut Context, mb: MouseButton, x: f32, y: f32) {
+		let Some(egui) = self.egui.as_mut() else { return };
+		egui.mouse_button_down_event(ctx, mb, x, y);
+	}
+
+	fn mouse_button_up_event(&mut self, ctx: &mut Context, mb: MouseButton, x: f32, y: f32) {
+		let Some(egui) = self.egui.as_mut() else { return };
+		egui.mouse_button_up_event(ctx, mb, x, y);
+	}
+
+	fn char_event(
+		&mut self,
+		_ctx: &mut Context,
+		character: char,
+		_keymods: KeyMods,
+		_repeat: bool,
+	) {
+		let Some(egui) = self.egui.as_mut() else { return };
+		egui.char_event(character);
+	}
+
+	fn key_down_event(
+		&mut self,
+		ctx: &mut Context,
+		keycode: KeyCode,
+		keymods: KeyMods,
+		_repeat: bool,
+	) {
+		let Some(egui) = self.egui.as_mut() else { return };
+		egui.key_down_event(ctx, keycode, keymods);
+	}
+
+	fn key_up_event(&mut self, _ctx: &mut Context, keycode: KeyCode, keymods: KeyMods) {
+		let Some(egui) = self.egui.as_mut() else { return };
+		egui.key_up_event(keycode, keymods);
 	}
 }

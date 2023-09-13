@@ -1,6 +1,6 @@
 use egui::*;
 
-use crate::app::Project;
+use crate::project::Project;
 
 use super::Tab;
 

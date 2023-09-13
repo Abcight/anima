@@ -1,6 +1,10 @@
 use std::path::{Path, PathBuf};
 
-use hematita::{vm::{Chunk, VirtualMachine, self, value::Function}, ast::{lexer::Lexer, parser}, compiler, lua_lib, lua_tuple};
+use hematita::{
+	ast::{lexer::Lexer, parser},
+	compiler, lua_lib,
+	vm::{self, value::Function, VirtualMachine},
+};
 use log::error;
 
 use serde::{Deserialize, Serialize};
@@ -19,16 +23,23 @@ pub struct Scene {
 impl Scene {
 	pub fn new(path: impl AsRef<Path> + Into<PathBuf>) -> Self {
 		let source = Source::new(path);
-		Self { code: None, vm: None, source }
+		Self {
+			code: None,
+			vm: None,
+			source,
+		}
 	}
 
-	pub fn update(&mut self, time: f64) {
+	pub fn update(&mut self, _time: f64) {
 		self.source.assert_watcher_spawned();
 
 		if self.source.wants_reload() {
 			self.source.update_content_from_file();
 
-			let lexer = Lexer {source: self.source.chars().peekable()}.peekable();
+			let lexer = Lexer {
+				source: self.source.chars().peekable(),
+			}
+			.peekable();
 			let parsed = parser::parse_block(&mut parser::TokenIterator(lexer));
 
 			if let Err(err) = parsed {

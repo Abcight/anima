@@ -10,13 +10,16 @@ pub struct Editor {
 }
 
 impl Default for Editor {
-    fn default() -> Self {
-        Self { scene_idx: Default::default(), title: String::from("Editor") }
-    }
+	fn default() -> Self {
+		Self {
+			scene_idx: Default::default(),
+			title: String::from("Editor"),
+		}
+	}
 }
 
 impl Tab for Editor {
-	fn ui(&mut self, ui: &mut egui::Ui, project: &mut crate::app::Project) {
+	fn ui(&mut self, ui: &mut egui::Ui, project: &mut crate::project::Project) {
 		if project.current_scene_idx != self.scene_idx {
 			self.scene_idx = project.current_scene_idx;
 			self.title = format!(
@@ -31,11 +34,7 @@ impl Tab for Editor {
 		let Some(scene) = self.scene_idx.map(|x| &mut project.scenes[x]) else { return };
 
 		let mut layouter = |ui: &egui::Ui, string: &str, wrap_width: f32| {
-			let mut layout_job = super::syntax_highlighting::highlight(
-				ui.ctx(),
-				string,
-				"lua",
-			);
+			let mut layout_job = super::syntax_highlighting::highlight(ui.ctx(), string, "lua");
 			layout_job.wrap.max_width = wrap_width;
 			ui.fonts(|f| f.layout_job(layout_job))
 		};

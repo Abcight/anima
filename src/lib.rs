@@ -2,5 +2,6 @@
 
 mod api;
 mod app;
+mod project;
 mod tabs;
 pub use app::AnimaApp;

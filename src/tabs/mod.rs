@@ -9,7 +9,7 @@ pub use editor::Editor;
 
 pub mod syntax_highlighting;
 
-use crate::app::Project;
+use crate::project::Project;
 
 pub trait Tab {
 	fn ui(&mut self, ui: &mut egui::Ui, project: &mut Project);
