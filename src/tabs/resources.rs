@@ -1,8 +1,6 @@
 use egui::*;
 
-use crate::project::Project;
-
-use super::Tab;
+use super::{Tab, TabCtx};
 
 #[derive(Default)]
 pub struct Resources {
@@ -11,7 +9,10 @@ pub struct Resources {
 }
 
 impl Tab for Resources {
-	fn ui(&mut self, ui: &mut egui::Ui, project: &mut Project) {
+	fn ui(&mut self, ctx: TabCtx<'_>) {
+		let project = ctx.project;
+		let ui = ctx.ui;
+
 		ui.collapsing("Components", |ui| {
 			ui.add(TextEdit::singleline(&mut self.component_filter).hint_text("Search..."));
 			ScrollArea::vertical()

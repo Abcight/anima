@@ -9,6 +9,7 @@ fn main() {
 		high_dpi: true,
 		window_width: 1280,
 		window_height: 720,
+		window_title: String::from("Anima"),
 		..Default::default()
 	};
 

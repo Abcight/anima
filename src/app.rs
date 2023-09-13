@@ -156,7 +156,7 @@ impl miniquad::EventHandler for AnimaApp {
 		let mut egui = None;
 		std::mem::swap(&mut self.egui, &mut egui);
 
-		egui.as_mut().unwrap().run(mq_ctx, |_mq_ctx, egui_ctx| {
+		egui.as_mut().unwrap().run(mq_ctx, |mq_ctx, egui_ctx| {
 			egui_ctx.set_pixels_per_point(dpi_scale);
 
 			egui::TopBottomPanel::top("top").show(egui_ctx, |ui| {
@@ -188,9 +188,11 @@ impl miniquad::EventHandler for AnimaApp {
 					});
 					return;
 				}
+
 				let Some(project) = self.project.as_mut() else { return };
+
 				egui_dock::DockArea::new(&mut self.tree)
-					.show_inside(ui, &mut TabViewer { project });
+					.show_inside(ui, &mut TabViewer { project, mq: mq_ctx });
 			});
 		});
 

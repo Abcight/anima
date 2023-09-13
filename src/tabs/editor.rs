@@ -2,7 +2,7 @@ use std::ops::DerefMut;
 
 use egui::{Key, Modifiers};
 
-use super::Tab;
+use super::{Tab, TabCtx};
 
 pub struct Editor {
 	scene_idx: Option<usize>,
@@ -19,7 +19,10 @@ impl Default for Editor {
 }
 
 impl Tab for Editor {
-	fn ui(&mut self, ui: &mut egui::Ui, project: &mut crate::project::Project) {
+	fn ui(&mut self, ctx: TabCtx<'_>) {
+		let project = ctx.project;
+		let ui = ctx.ui;
+
 		if project.current_scene_idx != self.scene_idx {
 			self.scene_idx = project.current_scene_idx;
 			self.title = format!(
