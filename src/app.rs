@@ -1,10 +1,11 @@
 use egui_dock::{NodeIndex, Tree};
 
-use crate::{project::Project, tabs::*};
+use crate::{project::Project, tabs::*, scripting::Api};
 
 pub struct AnimaApp {
 	tree: Tree<Box<dyn Tab>>,
 	project: Option<Project>,
+	api: Api,
 	project_dirty: bool,
 }
 
@@ -25,10 +26,12 @@ impl AnimaApp {
 		tree.split_below(preview[0], 0.2, vec![editor]);
 
 		let project = None;
+		let api = Api::new();
 
 		Self {
 			tree,
 			project,
+			api,
 			project_dirty: true,
 		}
 	}
@@ -66,12 +69,13 @@ impl AnimaApp {
 				}
 
 				let Some(project) = self.project.as_mut() else { return };
+				let api = &mut self.api;
 
 				egui_dock::DockArea::new(&mut self.tree)
-					.show_inside(ui, &mut TabViewer { project });
+					.show_inside(ui, &mut TabViewer { project, api });
 			});
 		});
-		
+
 		egui_macroquad::draw();
 	}
 
@@ -179,7 +183,7 @@ impl AnimaApp {
 }
 
 impl Default for AnimaApp {
-    fn default() -> Self {
-        Self::new()
-    }
+	fn default() -> Self {
+		Self::new()
+	}
 }

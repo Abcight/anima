@@ -9,11 +9,12 @@ pub use editor::Editor;
 
 pub mod syntax_highlighting;
 
-use crate::project::Project;
+use crate::{project::Project, scripting::Api};
 
 pub struct TabCtx<'a> {
 	pub ui: &'a mut egui::Ui,
-	pub project: &'a mut Project
+	pub project: &'a mut Project,
+	pub api: &'a mut Api
 }
 
 pub trait Tab {
@@ -22,7 +23,8 @@ pub trait Tab {
 }
 
 pub struct TabViewer<'a> {
-	pub project: &'a mut Project
+	pub project: &'a mut Project,
+	pub api: &'a mut Api
 }
 
 impl<'a> egui_dock::TabViewer for TabViewer<'a> {
@@ -31,7 +33,8 @@ impl<'a> egui_dock::TabViewer for TabViewer<'a> {
 	fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
 		let ctx = TabCtx {
 			ui,
-			project: self.project
+			api: self.api,
+			project: self.project,
 		};
 
 		tab.ui(ctx);

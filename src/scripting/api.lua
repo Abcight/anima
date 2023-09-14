@@ -134,11 +134,16 @@ function lerp(a, b, t)
 	return a.lerp(b, t)
 end
 
+-------------------------------------------------------------
+----------------------- Rust bindings! ----------------------
+-------------------------------------------------------------
+
 ---Draws a line from (x1, y1) to (x2, y2).
 ---@param x1 number
 ---@param y1 number
 ---@param x2 number
 ---@param y2 number
+---@param thickness number
 ---@param color color
-function line(x1, y1, x2, y2, color)
+function line(x1, y1, x2, y2, thickness, color)
 end
