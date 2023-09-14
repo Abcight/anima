@@ -1,16 +1,10 @@
 use super::{Tab, TabCtx};
 
-use miniquad as mq;
-
 #[derive(Default)]
-pub struct Preview {
-	ctx: Option<Ctx>
-}
+pub struct Preview;
 
-struct Ctx {
-	offscreen_pipeline: mq::Pipeline,
-	offscreen_bind: mq::Bindings,
-	offscreen_pass: mq::RenderPass,
+impl Preview {
+	
 }
 
 impl Tab for Preview {

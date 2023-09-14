@@ -1,23 +1,20 @@
 use egui_dock::{NodeIndex, Tree};
 
 use crate::{project::Project, tabs::*};
-use egui_miniquad::EguiMq;
-use miniquad::*;
 
 pub struct AnimaApp {
-	egui: Option<EguiMq>,
 	tree: Tree<Box<dyn Tab>>,
 	project: Option<Project>,
 	project_dirty: bool,
 }
 
 impl AnimaApp {
-	pub fn new(ctx: &mut miniquad::Context) -> Self {
+	pub fn new() -> Self {
 		use crate::theme::*;
-		let egui = EguiMq::new(ctx);
-		set_theme(egui.egui_ctx(), MOCHA);
 
-		let egui = Some(egui);
+		egui_macroquad::ui(|egui_ctx| {
+			set_theme(egui_ctx, MOCHA);
+		});
 
 		let hierarchy = Box::<Resources>::default();
 		let preview = Box::<Preview>::default();
@@ -30,15 +27,54 @@ impl AnimaApp {
 		let project = None;
 
 		Self {
-			egui,
 			tree,
 			project,
 			project_dirty: true,
 		}
 	}
-}
 
-impl AnimaApp {
+	pub fn draw(&mut self) {
+		egui_macroquad::ui(|egui_ctx| {
+			egui::TopBottomPanel::top("top").show(egui_ctx, |ui| {
+				egui::menu::bar(ui, |ui| {
+					ui.menu_button("File", |ui| {
+						if ui.button("New").clicked() {
+							self.new_project();
+							ui.close_menu();
+						}
+						ui.scope(|ui| {
+							ui.set_enabled(self.project.is_some());
+							if ui.button("Save").clicked() {
+								self.save_project();
+								ui.close_menu();
+							}
+						});
+						if ui.button("Open").clicked() {
+							self.open_project();
+							ui.close_menu();
+						}
+					});
+				});
+			});
+
+			egui::CentralPanel::default().show(egui_ctx, |ui| {
+				if self.project.is_none() {
+					ui.centered_and_justified(|ui| {
+						ui.label("No project loaded!\nGo to file > new/open.")
+					});
+					return;
+				}
+
+				let Some(project) = self.project.as_mut() else { return };
+
+				egui_dock::DockArea::new(&mut self.tree)
+					.show_inside(ui, &mut TabViewer { project });
+			});
+		});
+		
+		egui_macroquad::draw();
+	}
+
 	fn set_project(&mut self, project: Option<Project>) {
 		self.project = project;
 		self.project_dirty = true;
@@ -139,116 +175,5 @@ impl AnimaApp {
 	#[cfg(target_arch = "wasm32")]
 	fn open_project(&mut self) {
 		todo!()
-	}
-}
-
-impl miniquad::EventHandler for AnimaApp {
-	fn update(&mut self, _ctx: &mut miniquad::Context) {}
-
-	fn draw(&mut self, mq_ctx: &mut miniquad::Context) {
-		mq_ctx.clear(Some((1., 1., 1., 1.)), None, None);
-		mq_ctx.begin_default_pass(miniquad::PassAction::clear_color(0.0, 0.0, 0.0, 1.0));
-		mq_ctx.end_render_pass();
-
-		let dpi_scale = mq_ctx.dpi_scale();
-
-		// draw the ui
-		let mut egui = None;
-		std::mem::swap(&mut self.egui, &mut egui);
-
-		egui.as_mut().unwrap().run(mq_ctx, |mq_ctx, egui_ctx| {
-			egui_ctx.set_pixels_per_point(dpi_scale);
-
-			egui::TopBottomPanel::top("top").show(egui_ctx, |ui| {
-				egui::menu::bar(ui, |ui| {
-					ui.menu_button("File", |ui| {
-						if ui.button("New").clicked() {
-							self.new_project();
-							ui.close_menu();
-						}
-						ui.scope(|ui| {
-							ui.set_enabled(self.project.is_some());
-							if ui.button("Save").clicked() {
-								self.save_project();
-								ui.close_menu();
-							}
-						});
-						if ui.button("Open").clicked() {
-							self.open_project();
-							ui.close_menu();
-						}
-					});
-				});
-			});
-
-			egui::CentralPanel::default().show(egui_ctx, |ui| {
-				if self.project.is_none() {
-					ui.centered_and_justified(|ui| {
-						ui.label("No project loaded!\nGo to file > new/open.")
-					});
-					return;
-				}
-
-				let Some(project) = self.project.as_mut() else { return };
-
-				egui_dock::DockArea::new(&mut self.tree)
-					.show_inside(ui, &mut TabViewer { project, mq: mq_ctx });
-			});
-		});
-
-		egui.as_mut().unwrap().draw(mq_ctx);
-		std::mem::swap(&mut self.egui, &mut egui);
-
-		// draw the scene
-		// [...]
-
-		mq_ctx.commit_frame();
-	}
-
-	fn mouse_motion_event(&mut self, _: &mut Context, x: f32, y: f32) {
-		let Some(egui) = self.egui.as_mut() else { return };
-		egui.mouse_motion_event(x, y);
-	}
-
-	fn mouse_wheel_event(&mut self, _: &mut Context, dx: f32, dy: f32) {
-		let Some(egui) = self.egui.as_mut() else { return };
-		egui.mouse_wheel_event(dx, dy);
-	}
-
-	fn mouse_button_down_event(&mut self, ctx: &mut Context, mb: MouseButton, x: f32, y: f32) {
-		let Some(egui) = self.egui.as_mut() else { return };
-		egui.mouse_button_down_event(ctx, mb, x, y);
-	}
-
-	fn mouse_button_up_event(&mut self, ctx: &mut Context, mb: MouseButton, x: f32, y: f32) {
-		let Some(egui) = self.egui.as_mut() else { return };
-		egui.mouse_button_up_event(ctx, mb, x, y);
-	}
-
-	fn char_event(
-		&mut self,
-		_ctx: &mut Context,
-		character: char,
-		_keymods: KeyMods,
-		_repeat: bool,
-	) {
-		let Some(egui) = self.egui.as_mut() else { return };
-		egui.char_event(character);
-	}
-
-	fn key_down_event(
-		&mut self,
-		ctx: &mut Context,
-		keycode: KeyCode,
-		keymods: KeyMods,
-		_repeat: bool,
-	) {
-		let Some(egui) = self.egui.as_mut() else { return };
-		egui.key_down_event(ctx, keycode, keymods);
-	}
-
-	fn key_up_event(&mut self, _ctx: &mut Context, keycode: KeyCode, keymods: KeyMods) {
-		let Some(egui) = self.egui.as_mut() else { return };
-		egui.key_up_event(keycode, keymods);
 	}
 }

@@ -2,16 +2,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use anima::AnimaApp;
-use miniquad::*;
+use macroquad::prelude::*;
 
-fn main() {
-	let conf = conf::Conf {
-		high_dpi: true,
-		window_width: 1280,
-		window_height: 720,
-		window_title: String::from("Anima"),
-		..Default::default()
-	};
-
-	start(conf, move |ctx| Box::new(AnimaApp::new(ctx)));
+#[macroquad::main("Anima")]
+async fn main() {
+	let mut app = AnimaApp::new();
+	loop {
+		app.draw();
+		next_frame().await
+	}
 }

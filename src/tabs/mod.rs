@@ -13,7 +13,6 @@ use crate::project::Project;
 
 pub struct TabCtx<'a> {
 	pub ui: &'a mut egui::Ui,
-	pub mq: &'a mut miniquad::Context,
 	pub project: &'a mut Project
 }
 
@@ -23,7 +22,6 @@ pub trait Tab {
 }
 
 pub struct TabViewer<'a> {
-	pub mq: &'a mut miniquad::Context,
 	pub project: &'a mut Project
 }
 
@@ -33,8 +31,7 @@ impl<'a> egui_dock::TabViewer for TabViewer<'a> {
 	fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
 		let ctx = TabCtx {
 			ui,
-			project: self.project,
-			mq: self.mq
+			project: self.project
 		};
 
 		tab.ui(ctx);

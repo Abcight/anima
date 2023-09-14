@@ -8,8 +8,9 @@ rust-version = "1.71"
 [dependencies]
 egui = "0.21.0"
 egui_dock = "0.5"
-egui-miniquad = "0.14.0"
-miniquad = "0.3.16"
+egui-macroquad = "0.15.0"
+macroquad = "0.3.25"
+glam = "0.24.1"
 eframe = { version = "0.22.0", default-features = false, features = [
     "accesskit",
     "default_fonts",
