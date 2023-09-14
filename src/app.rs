@@ -177,3 +177,9 @@ impl AnimaApp {
 		todo!()
 	}
 }
+
+impl Default for AnimaApp {
+    fn default() -> Self {
+        Self::new()
+    }
+}
