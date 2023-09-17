@@ -7,6 +7,9 @@ pub use resources::Resources;
 pub mod editor;
 pub use editor::Editor;
 
+pub mod timeline;
+pub use timeline::Timeline;
+
 pub mod syntax_highlighting;
 
 use crate::{project::Project, scripting::Api};

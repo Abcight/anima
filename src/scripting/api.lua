@@ -14,28 +14,6 @@
 -------------------------------------------------------------
 
 -------------------------------------------------------------
--------- Internals! These shouldn't be useful to you! -------
--------------------------------------------------------------
-
-local BUILT_IN_FN = {}
-for key, value in pairs(_G) do
-	if type(value) == "function" then
-		BUILT_IN_FN[key] = true
-	end
-end
-
-function __sub_fn()
-	for key, value in pairs(_G) do
-		if type(value) == "function" and key:find("^__") == nil and BUILT_IN_FN[key] == nil then
-			_G[key] = function()
-				__endcheck()
-				value()
-			end
-		end
-	end
-end
-
--------------------------------------------------------------
 --- Metatables! These are the types supported by the API. ---
 --- (These are purposefully hidden from the user! Scram!) ---
 -------------------------------------------------------------
@@ -108,6 +86,66 @@ prototypes.color = {
 	end
 }
 
+---@class transition
+prototypes.transition = {
+	from = nil,
+	to = nil,
+	duration = nil,
+	fn = nil,
+	end_counted = false
+}
+
+prototypes.transition.__index = prototypes.transition
+
+function prototypes.transition:new(from, to, duration, fn)
+	local o = {}
+	setmetatable(o, prototypes.transition)
+
+	o.from = from
+	o.to = to
+	o.duration = duration
+	o.fn = fn
+	
+	return o
+end
+
+--- Pauses until the transition is finished
+function prototypes.transition:await()
+	if self.end_counted then
+		return
+	end
+
+	local local_time = math.max(0, TIME - LAST_TRANSITION_END)
+	local normalized_time = local_time / self.duration
+	if normalized_time < 1.0 then
+		__interrupt()
+	end
+end
+
+--- Returns the current value of transition
+function prototypes.transition:current()
+	local fn = self.fn or function(x) return x end
+
+	if self.end_counted then
+		return self.to
+	end
+
+	local local_time = math.max(0, TIME - LAST_TRANSITION_END)
+	local normalized_time = local_time / self.duration
+	local fn_time = fn(normalized_time)
+
+	if normalized_time < 1.0 then
+		return lerp(self.from, self.to, fn_time)
+	end
+
+	if not self.end_counted then
+		LAST_TRANSITION_END = LAST_TRANSITION_END + self.duration
+		self.end_counted = true
+	end
+
+	return self.to
+end
+
 -------------------------------------------------------------
 ---------- Shorthands for creating various objects ----------
 -------------------------------------------------------------
@@ -165,36 +203,24 @@ TIME = 0
 LAST_TRANSITION_END = 0
 MODE_ACCUMULATOR = false
 
-function __endcheck()
-	if TIME - LAST_TRANSITION_END < 0 then
-		__interrupt()
-	end
-end
-
 function __interrupt()
 	if MODE_ACCUMULATOR then return end
-	os.exit()
+	
 end
 
----Tries interpolating between a and b over t, if the underlying
+---Creates a transition between a and b over t, if the underlying
 ---implementation exists.
 ---@param from impl_lerp
 ---@param to impl_lerp
+---@param duration number
 ---@param lerp_fn function<impl_lerp>
 function transition(from, to, duration, lerp_fn)
-	local fn = lerp_fn or lerp
-
-	local local_time = math.max(0, TIME - LAST_TRANSITION_END)
-	local normalized_time = local_time / duration
-	local fn_time = lerp_fn(from, to, normalized_time)
-
-	if normalized_time < 1.0 then
-		return from:lerp(to, fn_time)
-	end
-
-	LAST_TRANSITION_END = LAST_TRANSITION_END + duration
-	
-	return to
+	return prototypes.transition:new(
+		from,
+		to,
+		duration,
+		lerp_fn
+	)
 end
 
 -------------------------------------------------------------

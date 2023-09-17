@@ -17,10 +17,14 @@ impl Api {
 		}
 	}
 
-	pub fn run(&mut self, script: &str) {
+	pub fn run(&mut self, time: f64, script: &str) {
 		self.load_api();
 		
 		self.lua.context(|ctx| {
+			let globals = ctx.globals();
+
+			globals.set("TIME", time).unwrap();
+
 			if let Err(e) = ctx.load(script).exec() {
 				error!("Runtime Lua error! {e:?}");
 			}
@@ -37,16 +41,10 @@ impl Api {
 				let r: f32 = color.get("r").unwrap_or_default();
 				let g: f32 = color.get("g").unwrap_or_default();
 				let b: f32 = color.get("b").unwrap_or_default();
-				let color = Color::new(r, g, b, 255.0);
+				let color = Color::new(r / 255.0, g / 255.0, b / 255.0, 1.0);
 				draw_line(x1, y1, x2, y2, thickness, color);
 				Ok(())
 			}).unwrap()).unwrap();
-
-			globals
-				.get::<_, Function<'_>>("__sub_fn")
-				.unwrap()
-				.call::<_, ()>(())
-				.unwrap();
 		});
 	}
 }

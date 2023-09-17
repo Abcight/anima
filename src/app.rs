@@ -20,13 +20,17 @@ impl AnimaApp {
 		let hierarchy = Box::<Resources>::default();
 		let preview = Box::<Preview>::default();
 		let editor = Box::<Editor>::default();
+		let timeline = Box::<Timeline>::default();
 
 		let mut tree: Tree<Box<dyn Tab>> = Tree::new(vec![hierarchy]);
-		let preview = tree.split_right(NodeIndex::root(), 0.2, vec![preview]);
+		let preview = tree.split_right(NodeIndex::root(), 0.3, vec![preview]);
 		tree.split_below(preview[0], 0.2, vec![editor]);
+		tree.split_below(preview[1], 0.8, vec![timeline]);
 
 		let project = None;
 		let api = Api::new();
+
+		macroquad::prelude::request_new_screen_size(1280.0, 720.0);
 
 		Self {
 			tree,
