@@ -41,6 +41,12 @@ impl Api {
 				draw_line(x1, y1, x2, y2, thickness, color);
 				Ok(())
 			}).unwrap()).unwrap();
+
+			globals
+				.get::<_, Function<'_>>("__sub_fn")
+				.unwrap()
+				.call::<_, ()>(())
+				.unwrap();
 		});
 	}
 }

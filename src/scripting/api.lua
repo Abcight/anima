@@ -14,6 +14,28 @@
 -------------------------------------------------------------
 
 -------------------------------------------------------------
+-------- Internals! These shouldn't be useful to you! -------
+-------------------------------------------------------------
+
+local BUILT_IN_FN = {}
+for key, value in pairs(_G) do
+	if type(value) == "function" then
+		BUILT_IN_FN[key] = true
+	end
+end
+
+function __sub_fn()
+	for key, value in pairs(_G) do
+		if type(value) == "function" and key:find("^__") == nil and BUILT_IN_FN[key] == nil then
+			_G[key] = function()
+				__endcheck()
+				value()
+			end
+		end
+	end
+end
+
+-------------------------------------------------------------
 --- Metatables! These are the types supported by the API. ---
 --- (These are purposefully hidden from the user! Scram!) ---
 -------------------------------------------------------------
@@ -122,16 +144,57 @@ end
 
 ---Tries interpolating between a and b over t, if the underlying
 ---implementation exists.
----@param a number | vec2 | vec3 | color
----@param b number | vec2 | vec3 | color
+---@alias impl_lerp number | vec2 | vec3 | color
+---@param a impl_lerp
+---@param b impl_lerp
 ---@param t number
----@return number | vec2 | vec3 | color
+---@return impl_lerp
 function lerp(a, b, t)
 	if type(a) == "number" then
 		return (1.0 - t) * a + t * b
 	end
 
 	return a.lerp(b, t)
+end
+
+-------------------------------------------------------------
+--------------------- Timeline shenans! ---------------------
+-------------------------------------------------------------
+
+TIME = 0
+LAST_TRANSITION_END = 0
+MODE_ACCUMULATOR = false
+
+function __endcheck()
+	if TIME - LAST_TRANSITION_END < 0 then
+		__interrupt()
+	end
+end
+
+function __interrupt()
+	if MODE_ACCUMULATOR then return end
+	os.exit()
+end
+
+---Tries interpolating between a and b over t, if the underlying
+---implementation exists.
+---@param from impl_lerp
+---@param to impl_lerp
+---@param lerp_fn function<impl_lerp>
+function transition(from, to, duration, lerp_fn)
+	local fn = lerp_fn or lerp
+
+	local local_time = math.max(0, TIME - LAST_TRANSITION_END)
+	local normalized_time = local_time / duration
+	local fn_time = lerp_fn(from, to, normalized_time)
+
+	if normalized_time < 1.0 then
+		return from:lerp(to, fn_time)
+	end
+
+	LAST_TRANSITION_END = LAST_TRANSITION_END + duration
+	
+	return to
 end
 
 -------------------------------------------------------------
