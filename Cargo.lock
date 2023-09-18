@@ -171,8 +171,9 @@ name = "anima"
 version = "0.1.0"
 dependencies = [
  "eframe",
- "egui 0.21.0",
+ "egui",
  "egui-macroquad",
+ "egui_code_editor",
  "egui_dock",
  "env_logger",
  "futures",
@@ -910,15 +911,6 @@ dependencies = [
 
 [[package]]
 name = "ecolor"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f99fe3cac305af9d6d92971af60d0f7ea4d783201ef1673571567b6699964d9"
-dependencies = [
- "bytemuck",
-]
-
-[[package]]
-name = "ecolor"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2e479a7fa3f23d4e794f8b2f8b3568dd4e47886ad1b12c9c095e141cb591eb63"
@@ -934,7 +926,7 @@ checksum = "bf4596583a2c680c55b6feaa748f74890c4f9cb9c7cb69d6117110444cb65b2f"
 dependencies = [
  "bytemuck",
  "cocoa",
- "egui 0.22.0",
+ "egui",
  "egui-wgpu",
  "egui-winit",
  "image",
@@ -955,24 +947,13 @@ dependencies = [
 
 [[package]]
 name = "egui"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6412a21e0bde7c0918f7fb44bbbb86b5e1f88e63c026a4e747cc7af02f76dfbe"
-dependencies = [
- "ahash 0.8.3",
- "epaint 0.21.0",
- "nohash-hasher",
-]
-
-[[package]]
-name = "egui"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3aef8ec3ae1b772f340170c65bf27d5b8c28f543a0116c844d2ac08d01123e7"
 dependencies = [
  "accesskit",
  "ahash 0.8.3",
- "epaint 0.22.0",
+ "epaint",
  "log",
  "nohash-hasher",
 ]
@@ -980,10 +961,9 @@ dependencies = [
 [[package]]
 name = "egui-macroquad"
 version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04684094ab441cee64e836dac5d07b822c0dd002739a9790023f9d2d08ce2875"
+source = "git+https://github.com/Abcight/egui-macroquad.git?rev=dfcfff60ceb130395a6ba076b88451143e5387f2#dfcfff60ceb130395a6ba076b88451143e5387f2"
 dependencies = [
- "egui 0.21.0",
+ "egui",
  "egui-miniquad",
  "macroquad",
 ]
@@ -991,12 +971,11 @@ dependencies = [
 [[package]]
 name = "egui-miniquad"
 version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c93b1e7505c5a4f7c362555758b8feb3ab5dc3bb3cda5e9a6805d46374d1428"
+source = "git+https://github.com/not-fl3/egui-miniquad.git?rev=22a34d99b00a512f7039b68b0e8066fe88f9a251#22a34d99b00a512f7039b68b0e8066fe88f9a251"
 dependencies = [
  "bytemuck",
  "copypasta",
- "egui 0.21.0",
+ "egui",
  "getrandom",
  "miniquad",
  "quad-rand",
@@ -1010,7 +989,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33caaedd8283779c787298af23d8754a7e88421ff32e89ad0040c855fc0b0224"
 dependencies = [
  "bytemuck",
- "epaint 0.22.0",
+ "epaint",
  "log",
  "thiserror",
  "type-map",
@@ -1026,7 +1005,7 @@ checksum = "4a49155fd4a0a4fb21224407a91de0030847972ef90fc64edb63621caea61cb2"
 dependencies = [
  "accesskit_winit",
  "arboard",
- "egui 0.22.0",
+ "egui",
  "instant",
  "log",
  "raw-window-handle",
@@ -1036,23 +1015,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "egui_dock"
-version = "0.5.2"
+name = "egui_code_editor"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6951209e8e0cee01cfdd60e5a681ccb5b7fa9a2bcca2ca8c3554d9cf66016422"
+checksum = "34f72bda2b82774a0bab7f2e213f83f06c95d1e240fbf71185198ec0bca1e902"
 dependencies = [
- "duplicate",
- "egui 0.21.0",
- "paste",
+ "egui",
 ]
 
 [[package]]
-name = "emath"
-version = "0.21.0"
+name = "egui_dock"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8ecd80612937e0267909d5351770fe150004e24dab93954f69ca62eecd3f77e"
+checksum = "1ec07302c1a474f37fe6ef2c6672427880025edc37ac33955e6ea4a11bc6972a"
 dependencies = [
- "bytemuck",
+ "duplicate",
+ "egui",
+ "paste",
 ]
 
 [[package]]
@@ -1100,22 +1079,6 @@ dependencies = [
 
 [[package]]
 name = "epaint"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12e78b5c58a1f7f621f9d546add2adce20636422c9b251e29f749e8a2f713c95"
-dependencies = [
- "ab_glyph",
- "ahash 0.8.3",
- "atomic_refcell",
- "bytemuck",
- "ecolor 0.21.0",
- "emath 0.21.0",
- "nohash-hasher",
- "parking_lot",
-]
-
-[[package]]
-name = "epaint"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09333964d4d57f40a85338ba3ca5ed4716070ab184dcfed966b35491c5c64f3b"
@@ -1124,8 +1087,8 @@ dependencies = [
  "ahash 0.8.3",
  "atomic_refcell",
  "bytemuck",
- "ecolor 0.22.0",
- "emath 0.22.0",
+ "ecolor",
+ "emath",
  "log",
  "nohash-hasher",
  "parking_lot",

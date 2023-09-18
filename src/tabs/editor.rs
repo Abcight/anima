@@ -1,6 +1,5 @@
-use std::ops::DerefMut;
-
 use egui::{Key, Modifiers};
+use egui_code_editor::*;
 
 use super::{Tab, TabCtx};
 
@@ -36,22 +35,15 @@ impl Tab for Editor {
 
 		let Some(scene) = self.scene_idx.map(|x| &mut project.scenes[x]) else { return };
 
-		let mut layouter = |ui: &egui::Ui, string: &str, wrap_width: f32| {
-			let mut layout_job = super::syntax_highlighting::highlight(ui.ctx(), string, "lua");
-			layout_job.wrap.max_width = wrap_width;
-			ui.fonts(|f| f.layout_job(layout_job))
-		};
-
 		egui::ScrollArea::vertical().show(ui, |ui| {
-			ui.add(
-				egui::TextEdit::multiline(scene.get_source().deref_mut())
-					.font(egui::TextStyle::Monospace) // for cursor height
-					.code_editor()
-					.desired_rows(10)
-					.lock_focus(true)
-					.desired_width(f32::INFINITY)
-					.layouter(&mut layouter),
-			);
+			CodeEditor::default()
+				.id_source("code editor")
+				.with_rows(12)
+				.with_fontsize(14.0)
+				.with_theme(ColorTheme::GITHUB_DARK)
+				.with_syntax(Syntax::lua())
+				.with_numlines(true)
+				.show(ui, scene.get_source());
 		});
 
 		ui.input_mut(|i| {
