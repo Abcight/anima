@@ -206,6 +206,8 @@ MODE_ACCUMULATOR = false
 function __interrupt()
 	if MODE_ACCUMULATOR then return end
 	
+	---@diagnostic disable-next-line: undefined-global
+	__a_function_that_totally_doesnt_exist()
 end
 
 ---Creates a transition between a and b over t, if the underlying
