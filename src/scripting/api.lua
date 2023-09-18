@@ -242,3 +242,18 @@ end
 ---@param color color
 function line_v(a, b, thickness, color)
 end
+
+---Draws a circle at (x, y) with the specified radius and color.
+---@param x number
+---@param y number
+---@param radius number
+---@param color color
+function circle(x, y, radius, color)
+end
+
+---Draws a circle at (x<sub>o</sub>, y<sub>o</sub>) with the specified radius and color.
+---@param o vec2
+---@param radius number
+---@param color color
+function circle_v(o, radius, color)
+end
