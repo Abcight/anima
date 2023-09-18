@@ -90,6 +90,7 @@ prototypes.color = {
 prototypes.transition = {
 	from = nil,
 	to = nil,
+	start = nil,
 	duration = nil,
 	fn = nil,
 	end_counted = false
@@ -101,6 +102,7 @@ function prototypes.transition:new(from, to, duration, fn)
 	local o = {}
 	setmetatable(o, prototypes.transition)
 
+	o.start = LAST_AWAIT_END
 	o.from = from
 	o.to = to
 	o.duration = duration
@@ -115,10 +117,13 @@ function prototypes.transition:await()
 		return
 	end
 
-	local local_time = math.max(0, TIME - LAST_TRANSITION_END)
+	local local_time = math.max(0, TIME - self.start)
 	local normalized_time = local_time / self.duration
 	if normalized_time < 1.0 then
 		__interrupt()
+	else
+		self.end_counted = true
+		LAST_AWAIT_END = math.max(LAST_AWAIT_END, self.start + self.duration)
 	end
 end
 
@@ -126,21 +131,12 @@ end
 function prototypes.transition:current()
 	local fn = self.fn or function(x) return x end
 
-	if self.end_counted then
-		return self.to
-	end
-
-	local local_time = math.max(0, TIME - LAST_TRANSITION_END)
+	local local_time = math.max(0, TIME - self.start)
 	local normalized_time = local_time / self.duration
 	local fn_time = fn(normalized_time)
 
 	if normalized_time < 1.0 then
 		return lerp(self.from, self.to, fn_time)
-	end
-
-	if not self.end_counted then
-		LAST_TRANSITION_END = LAST_TRANSITION_END + self.duration
-		self.end_counted = true
 	end
 
 	return self.to
@@ -200,7 +196,7 @@ end
 -------------------------------------------------------------
 
 TIME = 0
-LAST_TRANSITION_END = 0
+LAST_AWAIT_END = 0
 MODE_ACCUMULATOR = false
 
 function __interrupt()
