@@ -257,3 +257,20 @@ end
 ---@param color color
 function disc_v(o, radius, color)
 end
+
+---Draws a circle at (x, y) with the specified thickness, radius and color.
+---@param x number
+---@param y number
+---@param radius number
+---@param thickness number
+---@param color color
+function circle(x, y, radius, thickness, color)
+end
+
+---Draws a circle at (x<sub>o</sub>, y<sub>o</sub>) with the specified thickness, radius and color.
+---@param o vec2
+---@param radius number
+---@param thickness number
+---@param color color
+function circle_v(o, radius, thickness, color)
+end
