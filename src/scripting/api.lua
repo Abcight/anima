@@ -234,3 +234,11 @@ end
 ---@param color color
 function line(x1, y1, x2, y2, thickness, color)
 end
+
+---Draws a line from (x<sub>a</sub>, y<sub>a</sub>) to (x<sub>b</sub>, y<sub>b</sub>).
+---@param a vec2
+---@param b vec2
+---@param thickness number
+---@param color color
+function line_v(a, b, thickness, color)
+end
