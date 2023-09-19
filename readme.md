@@ -1,6 +1,7 @@
 <h1 align="center">anima</h1>
-<p align="center"><img src="readme.gif"></img><br>A Rusty code-based animation editor.<br>
-<i><b>🚧 Work in progress! 🚧</i></b>
+<p align="center">A Rusty code-based animation editor.<br>
+<i><b>🚧 Work in progress! 🚧</i></b><br><br>
+<kbd><img src="readme.gif"></img></kbd>
 </p>
 
 ## Motivation 🙌
