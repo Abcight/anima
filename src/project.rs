@@ -7,6 +7,7 @@ use serde::*;
 pub struct Project {
 	pub scenes: Vec<Scene>,
 	pub current_scene_idx: Option<usize>,
+	pub ratio: (u16, u16),
 	root_dir: Option<PathBuf>,
 }
 
