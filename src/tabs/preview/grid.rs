@@ -32,12 +32,17 @@ impl Grid {
 			self.thick
 		);
 
-		let mut x = 0.0;
+		let mut x = fit.view_space_width / 2.0;
 		let x_scale = fit.width / fit.view_space_width;
 		while x < fit.view_space_width {
 			painter.line_segment([
 				(rect.left() + x * x_scale, rect.top()).into(),
 				(rect.left() + x * x_scale, rect.bottom()).into()],
+				self.thin
+			);
+			painter.line_segment([
+				(rect.right() - x * x_scale, rect.top()).into(),
+				(rect.right() - x * x_scale, rect.bottom()).into()],
 				self.thin
 			);
 			x += fit.view_space_scale;
