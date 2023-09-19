@@ -1,6 +1,5 @@
 <h1 align="center">anima</h1>
-![Anima UI in action](readme.gif)
-<p align="center">A Rusty code-based animation editor.<br>
+<p align="center"><img src="readme.gif"></img><br>A Rusty code-based animation editor.<br>
 <i><b>🚧 Work in progress! 🚧</i></b>
 </p>
 
