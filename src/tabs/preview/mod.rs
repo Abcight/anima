@@ -3,6 +3,12 @@ use super::{Tab, TabCtx};
 use egui::*;
 use macroquad::prelude::*;
 
+mod grid;
+use grid::Grid;
+
+mod fit;
+use fit::ViewFit;
+
 #[derive(Default)]
 pub struct Preview {
 	target: Option<RenderTarget>,
@@ -110,105 +116,6 @@ impl Preview {
 		};
 
 		self.target.as_mut().unwrap()
-	}
-}
-
-struct ViewFit {
-	width: f32,
-	height: f32,
-	aspect: f32,
-	view_space_width: f32,
-	view_space_height: f32,
-	view_space_scale: f32
-}
-
-impl ViewFit {
-	pub fn new(ratio_width: f32, ratio_height: f32, width: f32, height: f32, view_scale: f32) -> Self {
-		let scale_w = width / ratio_width;
-		let scale_h = height / ratio_height;
-
-		let (fit_w_x, fit_w_y) = (ratio_width * scale_w, ratio_height * scale_w);
-		let (fit_h_x, fit_h_y) = (ratio_width * scale_h, ratio_height * scale_h);
-		let (fit_x, fit_y) = if fit_w_x <= width && fit_w_y <= height {
-			(fit_w_x, fit_w_y)
-		} else {
-			(fit_h_x, fit_h_y)
-		};
-
-		let view_space_width = ratio_width * view_scale;
-		let view_space_height = ratio_height * view_scale;
-		let view_space_scale = view_scale;
-
-		let aspect = ratio_width / ratio_height;
-
-		Self {
-			width: fit_x,
-			height: fit_y,
-			aspect,
-			view_space_width,
-			view_space_height,
-			view_space_scale
-		}
-	}
-}
-
-struct Grid {
-	thick: Stroke,
-	thin: Stroke
-}
-
-impl Default for Grid {
-	fn default() -> Self {
-		Self {
-			thick: Stroke::new(2.0, Color32::from_rgb_additive(40, 39, 77)),
-			thin: Stroke::new(1.0, Color32::from_rgb_additive(40, 39, 77))
-		}
-	}
-}
-
-impl Grid {
-	fn draw(&self, ui: &mut egui::Ui, fit: &ViewFit, rect: egui::Rect) {
-		let painter = ui.painter();
-		painter.rect(rect, 0.0, Color32::TRANSPARENT, self.thick);
-
-		painter.line_segment([
-			(rect.left(), rect.center().y).into(),
-			(rect.right(), rect.center().y).into()],
-			self.thick
-		);
-
-		painter.line_segment([
-			(rect.center().x, rect.top()).into(),
-			(rect.center().x, rect.bottom()).into()],
-			self.thick
-		);
-
-		let mut x = 0.0;
-		let x_scale = fit.width / fit.view_space_width;
-		while x < fit.view_space_width {
-			painter.line_segment([
-				(rect.left() + x * x_scale, rect.top()).into(),
-				(rect.left() + x * x_scale, rect.bottom()).into()],
-				self.thin
-			);
-			x += fit.view_space_scale;
-		}
-
-		let mut y = fit.view_space_height / 2.0;
-		let y_scale = fit.height / fit.view_space_height;
-		while y < fit.view_space_height {
-			painter.line_segment([
-				(rect.left(), rect.top() + y * y_scale).into(),
-				(rect.right(), rect.top() + y * y_scale).into()],
-				self.thin
-			);
-			painter.line_segment([
-				(rect.left(), rect.bottom() - y * y_scale).into(),
-				(rect.right(), rect.bottom() - y * y_scale).into()],
-				self.thin
-			);
-			y += fit.view_space_scale;
-		}
 	}
 }
 
