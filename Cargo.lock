@@ -177,7 +177,6 @@ dependencies = [
  "egui_dock",
  "env_logger",
  "futures",
- "glam 0.24.1",
  "js-sys",
  "log",
  "macroquad",
@@ -1423,12 +1422,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "518faa5064866338b013ff9b2350dc318e14cc4fcd6cb8206d7e7c9886c98815"
 
 [[package]]
-name = "glam"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42218cb640844e3872cc3c153dc975229e080a6c4733b34709ef445610550226"
-
-[[package]]
 name = "glib-sys"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1890,7 +1883,7 @@ checksum = "b92608a005ca1f16fe4e78c85a1cb18481898ac1347c71ae3398a6795c493c15"
 dependencies = [
  "bumpalo",
  "fontdue",
- "glam 0.21.3",
+ "glam",
  "image",
  "macroquad_macro",
  "miniquad",

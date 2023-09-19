@@ -18,6 +18,7 @@ pub fn set_theme(ctx: &egui::Context, theme: Theme) {
 /// ctx.set_style(style);
 /// # });
 /// ```
+#[allow(dead_code)]
 pub fn set_style_theme(style: &mut egui::Style, theme: Theme) {
 	let old = style.visuals.clone();
 	style.visuals = theme.visuals(old);
@@ -119,6 +120,7 @@ impl Theme {
 	}
 }
 
+#[allow(dead_code)]
 pub const LATTE: Theme = Theme {
 	rosewater: Color32::from_rgb(220, 138, 120),
 	flamingo: Color32::from_rgb(221, 120, 120),
@@ -148,6 +150,7 @@ pub const LATTE: Theme = Theme {
 	crust: Color32::from_rgb(220, 224, 232),
 };
 
+#[allow(dead_code)]
 pub const FRAPPE: Theme = Theme {
 	rosewater: Color32::from_rgb(242, 213, 207),
 	flamingo: Color32::from_rgb(238, 190, 190),
@@ -177,6 +180,7 @@ pub const FRAPPE: Theme = Theme {
 	crust: Color32::from_rgb(35, 38, 52),
 };
 
+#[allow(dead_code)]
 pub const MACCHIATO: Theme = Theme {
 	rosewater: Color32::from_rgb(244, 219, 214),
 	flamingo: Color32::from_rgb(240, 198, 198),
