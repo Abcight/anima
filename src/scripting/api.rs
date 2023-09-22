@@ -1,5 +1,3 @@
-use std::ops::{Deref, DerefMut};
-
 use rlua::*;
 use log::error;
 
@@ -39,62 +37,58 @@ impl Api {
 
 			let globals = ctx.globals();
 
-			globals.set("line", ctx.create_function(|_, (x1, y1, x2, y2, thickness, color) : (f32, f32, f32, f32, f32, Table<'_>)| {
-				let color: Color = Tl(color).into();
-				draw_line(x1, y1, x2, y2, thickness, color);
+			globals.set("line", ctx.create_function(|_, (x1, y1, x2, y2, thickness, color) : (f32, f32, f32, f32, f32, Color)| {
+				draw_line(x1, y1, x2, y2, thickness, color.0);
 				Ok(())
 			}).unwrap()).unwrap();
 
-			globals.set("disc", ctx.create_function(|_, (x, y, radius, color) : (f32, f32, f32, Table<'_>)| {
-				let color = Tl(color).into();
-				draw_circle(x, y, radius, color);
+			globals.set("disc", ctx.create_function(|_, (x, y, radius, color) : (f32, f32, f32, Color)| {
+				draw_circle(x, y, radius, color.0);
 				Ok(())
 			}).unwrap()).unwrap();
 
-			globals.set("circle", ctx.create_function(|_, (x, y, radius, thickness, color) : (f32, f32, f32, f32, Table<'_>)| {
-				let color = Tl(color).into();
-				draw_circle_lines(x, y, radius, thickness, color);
+			globals.set("circle", ctx.create_function(|_, (x, y, radius, thickness, color) : (f32, f32, f32, f32, Color)| {
+				draw_circle_lines(x, y, radius, thickness, color.0);
 				Ok(())
 			}).unwrap()).unwrap();
 		});
 	}
 }
 
-struct Tl<'a>(pub Table<'a>);
-
-impl<'a> From<Table<'a>> for Tl<'a> {
-    fn from(val: Table<'a>) -> Self {
-		Tl(val)
-    }
+macro_rules! mq_wrapper {
+	($name: ident) => {
+		struct $name(macroquad::prelude::$name);
+	};
 }
 
-impl<'a> Deref for Tl<'a> {
-	type Target = Table<'a>;
+mq_wrapper!(Color);
+mq_wrapper!(Vec2);
 
-	fn deref(&self) -> &Self::Target {
-		&self.0
+impl<'a> FromLuaMulti<'a> for Color {
+	fn from_lua_multi(values: MultiValue<'a>, lua: Context<'a>) -> Result<Self> {
+		let table = match Table::from_lua_multi(values, lua) {
+			Ok(table) => table,
+			Err(e) => return Err(e),
+		};
+
+		let r: f32 = table.get("r").unwrap_or_default();
+		let g: f32 = table.get("g").unwrap_or_default();
+		let b: f32 = table.get("b").unwrap_or_default();
+
+		Ok(Color(macroquad::prelude::Color::new(r / 255.0, g / 255.0, b / 255.0, 1.0)))
 	}
 }
 
-impl<'a> DerefMut for Tl<'a> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-		&mut self.0
-    }
-}
 
-impl From<Tl<'_>> for Vec2 {
-	fn from(val: Tl<'_>) -> Self {
-		let x = val.get("x").unwrap_or_default();
-		let y = val.get("y").unwrap_or_default();
-		vec2(x, y)
-	}
-}
+impl<'a> FromLuaMulti<'a> for Vec2 {
+	fn from_lua_multi(values: MultiValue<'a>, lua: Context<'a>) -> Result<Self> {
+		let table = match Table::from_lua_multi(values, lua) {
+			Ok(table) => table,
+			Err(e) => return Err(e),
+		};
 
-impl From<Tl<'_>> for Color {
-	fn from(val: Tl<'_>) -> Self {
-		let r: f32 = val.get("r").unwrap_or_default();
-		let g: f32 = val.get("g").unwrap_or_default();
-		let b: f32 = val.get("b").unwrap_or_default();
-		Color::new(r / 255.0, g / 255.0, b / 255.0, 1.0)
+		let x = table.get("x").unwrap_or_default();
+		let y = table.get("y").unwrap_or_default();
+		Ok(Vec2(vec2(x, y)))
 	}
 }
