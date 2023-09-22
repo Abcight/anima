@@ -45,39 +45,15 @@ impl Api {
 				Ok(())
 			}).unwrap()).unwrap();
 
-			globals.set("line_v", ctx.create_function(|_, (a, b, thickness, color) : (Table<'_>, Table<'_>, f32, Table<'_>)| {
-				let a: Vec2 = Tl(a).into();
-				let b: Vec2 = Tl(b).into();
-				let color = Tl(color).into();
-
-				draw_line(a.x, a.y, b.x, b.y, thickness, color);
-
-				Ok(())
-			}).unwrap()).unwrap();
-
 			globals.set("disc", ctx.create_function(|_, (x, y, radius, color) : (f32, f32, f32, Table<'_>)| {
 				let color = Tl(color).into();
 				draw_circle(x, y, radius, color);
 				Ok(())
 			}).unwrap()).unwrap();
 
-			globals.set("disc_v", ctx.create_function(|_, (o, radius, color) : (Table<'_>, f32, Table<'_>)| {
-				let o: Vec2 = Tl(o).into();
-				let color = Tl(color).into();
-				draw_circle(o.x, o.y, radius, color);
-				Ok(())
-			}).unwrap()).unwrap();
-
 			globals.set("circle", ctx.create_function(|_, (x, y, radius, thickness, color) : (f32, f32, f32, f32, Table<'_>)| {
 				let color = Tl(color).into();
 				draw_circle_lines(x, y, radius, thickness, color);
-				Ok(())
-			}).unwrap()).unwrap();
-
-			globals.set("circle_v", ctx.create_function(|_, (o, radius, thickness, color) : (Table<'_>, f32, f32, Table<'_>)| {
-				let o: Vec2 = Tl(o).into();
-				let color = Tl(color).into();
-				draw_circle_lines(o.x, o.y, radius, thickness, color);
 				Ok(())
 			}).unwrap()).unwrap();
 		});

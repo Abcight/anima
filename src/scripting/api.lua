@@ -241,6 +241,7 @@ end
 ---@param thickness number
 ---@param color color
 function line_v(a, b, thickness, color)
+	line(a.x, a.y, b.x, b.y, thickness, color)
 end
 
 ---Draws a disc at (x, y) with the specified radius and color.
@@ -256,6 +257,7 @@ end
 ---@param radius number
 ---@param color color
 function disc_v(o, radius, color)
+	disc(o.x, o.y, radius, color)
 end
 
 ---Draws a circle at (x, y) with the specified thickness, radius and color.
@@ -273,4 +275,5 @@ end
 ---@param thickness number
 ---@param color color
 function circle_v(o, radius, thickness, color)
+	circle(o.x, o.y, radius, thickness, color)
 end
