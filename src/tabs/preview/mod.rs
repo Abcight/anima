@@ -29,11 +29,6 @@ impl Tab for Preview {
 		TopBottomPanel::top("preview_top").show_inside(ui, |ui| {
 			ui.horizontal(|ui| {
 				ui.group(|ui| {
-					ui.label("Aspect ratio");
-					int_field(ui, &mut project.ratio.0);
-					int_field(ui, &mut project.ratio.1);
-				});
-				ui.group(|ui| {
 					ui.checkbox(&mut self.show_grid, "Show grid");
 				});
 			});
@@ -117,16 +112,4 @@ impl Preview {
 
 		self.target.as_mut().unwrap()
 	}
-}
-
-fn int_field(ui: &mut egui::Ui, value: &mut u16) -> egui::Response {
-	let mut tmp_value = format!("{}", value);
-	let res = TextEdit::singleline(&mut tmp_value)
-		.desired_width(30.0)
-		.show(ui)
-		.response;
-	if let Ok(result) = tmp_value.parse() {
-		*value = result;
-	}
-	res
 }
