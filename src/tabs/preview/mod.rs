@@ -67,7 +67,7 @@ impl Tab for Preview {
 			x: -fit.aspect,
 			y: -1.0,
 			w: fit.view_space_width,
-			h: fit.view_space_height,
+			h: -fit.view_space_height,
 		});
 		camera.target = macroquad::math::vec2(0.0, 0.0);
 		camera.render_target = Some(*target);

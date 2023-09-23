@@ -277,3 +277,21 @@ end
 function circle_v(o, radius, thickness, color)
 	circle(o.x, o.y, radius, thickness, color)
 end
+
+---Draws text at (x, y) with the specified font size and color.
+---@param text string
+---@param x number
+---@param y number
+---@param size number
+---@param color color
+function draw_text(text, x, y, size, color)
+end
+
+---Draws text at (x<sub>o</sub>, y<sub>o</sub>) with the specified font size and color.
+---@param text string
+---@param o vec2
+---@param size number
+---@param color color
+function draw_text_v(text, o, size, color)
+	draw_text(text, o.x, o.y, size, color);
+end

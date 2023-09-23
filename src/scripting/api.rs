@@ -51,6 +51,11 @@ impl Api {
 				draw_circle_lines(x, y, radius, thickness, color.0);
 				Ok(())
 			}).unwrap()).unwrap();
+
+			globals.set("draw_text", ctx.create_function(|_, (text, x, y, size, color) : (String<'_>, f32, f32, f32, Color)| {
+				draw_text(text.to_str().unwrap_or_default(), x, y, size, color.0);
+				Ok(())
+			}).unwrap()).unwrap();
 		});
 	}
 }
