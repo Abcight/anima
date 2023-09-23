@@ -1,6 +1,6 @@
 use egui_dock::{NodeIndex, Tree};
 
-use crate::{project::Project, tabs::*, scripting::Api};
+use crate::{project::Project, scripting::Api, tabs::*};
 
 pub struct AnimaApp {
 	tree: Tree<Box<dyn Tab>>,

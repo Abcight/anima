@@ -13,7 +13,7 @@ use fit::ViewFit;
 pub struct Preview {
 	target: Option<RenderTarget>,
 	show_grid: bool,
-	grid: Grid
+	grid: Grid,
 }
 
 impl Tab for Preview {
@@ -52,9 +52,9 @@ impl Tab for Preview {
 			project.ratio.1 as f32,
 			available_size.x,
 			available_size.y,
-			10.0
+			10.0,
 		);
-		
+
 		let target = self.get_update_target(&fit);
 
 		let target_id = target
@@ -121,7 +121,10 @@ impl Preview {
 
 fn int_field(ui: &mut egui::Ui, value: &mut u16) -> egui::Response {
 	let mut tmp_value = format!("{}", value);
-	let res = TextEdit::singleline(&mut tmp_value).desired_width(30.0).show(ui).response;
+	let res = TextEdit::singleline(&mut tmp_value)
+		.desired_width(30.0)
+		.show(ui)
+		.response;
 	if let Ok(result) = tmp_value.parse() {
 		*value = result;
 	}

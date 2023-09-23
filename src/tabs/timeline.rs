@@ -3,7 +3,7 @@ use std::time::Duration;
 
 #[derive(Default)]
 pub struct Timeline {
-	play: bool
+	play: bool,
 }
 
 impl Tab for Timeline {
@@ -29,15 +29,18 @@ impl Tab for Timeline {
 			let minutes = (duration.as_secs() / 60) % 60;
 			let hours = (duration.as_secs() / 60) / 60;
 			ui.label(format!("{:0>2}:{:0>2}:{:0>2}", hours, minutes, seconds));
-			
-			if ui.button(match self.play {
-				true => "⏸",
-				false => "▶"
-			}).clicked() {
+
+			if ui
+				.button(match self.play {
+					true => "⏸",
+					false => "▶",
+				})
+				.clicked()
+			{
 				self.play = !self.play;
 			}
 
-			let slider = egui::Slider::new(time, 0.0 ..= 30.0)
+			let slider = egui::Slider::new(time, 0.0..=30.0)
 				.smart_aim(false)
 				.show_value(false);
 			ui.spacing_mut().slider_width = ui.available_width();

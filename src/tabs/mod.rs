@@ -15,7 +15,7 @@ use crate::{project::Project, scripting::Api};
 pub struct TabCtx<'a> {
 	pub ui: &'a mut egui::Ui,
 	pub project: &'a mut Project,
-	pub api: &'a mut Api
+	pub api: &'a mut Api,
 }
 
 pub trait Tab {
@@ -25,7 +25,7 @@ pub trait Tab {
 
 pub struct TabViewer<'a> {
 	pub project: &'a mut Project,
-	pub api: &'a mut Api
+	pub api: &'a mut Api,
 }
 
 impl<'a> egui_dock::TabViewer for TabViewer<'a> {

@@ -53,7 +53,15 @@ impl Api {
 			}).unwrap()).unwrap();
 
 			globals.set("draw_text", ctx.create_function(|_, (text, x, y, size, color) : (String<'_>, f32, f32, f32, Color)| {
-				draw_text(text.to_str().unwrap_or_default(), x, y, size, color.0);
+				let (font_size, font_scale, font_scale_aspect) = camera_font_scale(size);
+				let color = color.0;
+				draw_text_ex(text.to_str().unwrap_or_default(), x, y, TextParams {
+					font_size,
+					font_scale,
+					font_scale_aspect,
+					color,
+					..Default::default() 
+				});
 				Ok(())
 			}).unwrap()).unwrap();
 		});

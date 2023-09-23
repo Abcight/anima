@@ -4,11 +4,17 @@ pub struct ViewFit {
 	pub aspect: f32,
 	pub view_space_width: f32,
 	pub view_space_height: f32,
-	pub view_space_scale: f32
+	pub view_space_scale: f32,
 }
 
 impl ViewFit {
-	pub fn new(ratio_width: f32, ratio_height: f32, width: f32, height: f32, view_scale: f32) -> Self {
+	pub fn new(
+		ratio_width: f32,
+		ratio_height: f32,
+		width: f32,
+		height: f32,
+		view_scale: f32,
+	) -> Self {
 		let scale_w = width / ratio_width;
 		let scale_h = height / ratio_height;
 
@@ -32,7 +38,7 @@ impl ViewFit {
 			aspect,
 			view_space_width,
 			view_space_height,
-			view_space_scale
+			view_space_scale,
 		}
 	}
 }

@@ -2,22 +2,19 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use super::{Source, Api};
+use super::{Api, Source};
 
 #[derive(Serialize, Deserialize)]
 pub struct Scene {
 	source: Source,
-	time: f64
+	time: f64,
 }
 
 impl Scene {
 	pub fn new(path: impl AsRef<Path> + Into<PathBuf>) -> Self {
 		let source = Source::new(path);
 		let time = 0.0;
-		Self {
-			source,
-			time
-		}
+		Self { source, time }
 	}
 
 	pub fn update(&mut self, api: &mut Api) {
