@@ -21,7 +21,7 @@ impl Tab for Preview {
 		let project = ctx.project;
 		let ui = ctx.ui;
 
-		let Some(index) = project.current_scene_idx else {
+		let Some(scene) = project.loaded_scene.as_mut() else {
 			ui.centered_and_justified(|ui| ui.label("Preview!!! Epic!"));
 			return
 		};
@@ -69,7 +69,6 @@ impl Tab for Preview {
 		set_camera(&camera);
 		clear_background(BLACK);
 
-		let scene = &mut project.scenes[index];
 		scene.update(ctx.api);
 
 		let mut preview_rect = egui::Rect::NAN;

@@ -27,16 +27,20 @@ impl Tab for Resources {
 			ScrollArea::vertical()
 				.max_height(ui.available_height() / 2.0)
 				.show(ui, |ui| {
-					for (index, scene) in project.scenes.iter().enumerate() {
-						let name = scene.get_name();
+					let mut load_target = None;
+					for path in project.scene_files_relative.iter() {
+						let name = path.to_string_lossy();
 
 						if !name.contains(&self.scene_filter) {
 							continue;
 						}
 
 						if ui.small_button(name).clicked() {
-							project.current_scene_idx = Some(index);
+							load_target = Some(path);
 						}
+					}
+					if let Some(target) = load_target {
+						project.load_scene(&target.clone()).unwrap(); // TODO: Handle err
 					}
 				});
 		});

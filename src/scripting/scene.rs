@@ -1,10 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use serde::{Deserialize, Serialize};
-
 use super::{Api, Source};
 
-#[derive(Serialize, Deserialize)]
 pub struct Scene {
 	source: Source,
 	time: f64,

@@ -4,14 +4,12 @@ use egui_code_editor::*;
 use super::{Tab, TabCtx};
 
 pub struct Editor {
-	scene_idx: Option<usize>,
 	title: String,
 }
 
 impl Default for Editor {
 	fn default() -> Self {
 		Self {
-			scene_idx: Default::default(),
 			title: String::from("Editor"),
 		}
 	}
@@ -22,18 +20,15 @@ impl Tab for Editor {
 		let project = ctx.project;
 		let ui = ctx.ui;
 
-		if project.current_scene_idx != self.scene_idx {
-			self.scene_idx = project.current_scene_idx;
-			self.title = format!(
-				"Editor ({})",
-				match self.scene_idx {
-					Some(idx) => project.scenes[idx].get_name(),
-					None => "None",
-				}
-			);
-		}
+		self.title = format!(
+			"Editor ({})",
+			match project.loaded_scene.as_ref() {
+				Some(scene) => scene.get_name(),
+				None => "None",
+			}
+		);
 
-		let Some(scene) = self.scene_idx.map(|x| &mut project.scenes[x]) else { return };
+		let Some(scene) = project.loaded_scene.as_mut() else { return };
 
 		egui::ScrollArea::vertical().show(ui, |ui| {
 			CodeEditor::default()

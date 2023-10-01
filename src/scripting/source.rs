@@ -1,6 +1,5 @@
 use log::error;
 use notify::*;
-use serde::{Deserialize, Serialize};
 use std::{
 	ops::{Deref, DerefMut},
 	path::{Path, PathBuf},
@@ -10,13 +9,10 @@ use std::{
 	},
 };
 
-#[derive(Serialize, Deserialize)]
 pub struct Source {
 	path: PathBuf,
 	data: String,
-	#[serde(skip)]
 	watcher: Option<RecommendedWatcher>,
-	#[serde(skip)]
 	refresh: Arc<AtomicBool>,
 }
 

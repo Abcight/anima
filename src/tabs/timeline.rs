@@ -11,12 +11,11 @@ impl Tab for Timeline {
 		let project = ctx.project;
 		let ui = ctx.ui;
 
-		let Some(index) = project.current_scene_idx else {
+		let Some(scene) = project.loaded_scene.as_mut() else {
 			ui.centered_and_justified(|ui| ui.label("Select scene to view the timeline."));
-			return
+			return;
 		};
 
-		let scene = &mut project.scenes[index];
 		let time = scene.get_time_mut();
 
 		if self.play {
