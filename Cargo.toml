@@ -10,6 +10,8 @@ egui = "0.22.0"
 egui_dock = "0.6.3"
 egui_code_editor = "0.1.7"
 egui-macroquad = { git = "https://github.com/Abcight/egui-macroquad.git", rev="dfcfff60ceb130395a6ba076b88451143e5387f2" }
+egui-toast = "0.8.1"
+anyhow = "1.0.75"
 macroquad = "0.3.25"
 eframe = { version = "0.22.0", default-features = false, features = [
     "accesskit",

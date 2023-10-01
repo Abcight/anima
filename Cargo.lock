@@ -170,9 +170,11 @@ dependencies = [
 name = "anima"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "eframe",
  "egui",
  "egui-macroquad",
+ "egui-toast",
  "egui_code_editor",
  "egui_dock",
  "env_logger",
@@ -188,6 +190,12 @@ dependencies = [
  "syntect",
  "wasm-bindgen-futures",
 ]
+
+[[package]]
+name = "anyhow"
+version = "1.0.75"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4668cab20f66d8d020e1fbc0ebe47217433c1b6c8f2040faf858554e394ace6"
 
 [[package]]
 name = "arboard"
@@ -979,6 +987,15 @@ dependencies = [
  "miniquad",
  "quad-rand",
  "quad-url",
+]
+
+[[package]]
+name = "egui-toast"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e0aa5dfd08df26976aadc32ac9c4b51e72525b2c9d0e387a7b8a0d3619be63c"
+dependencies = [
+ "egui",
 ]
 
 [[package]]

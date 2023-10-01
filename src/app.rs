@@ -1,12 +1,16 @@
-use egui::{Modifiers, Key};
+use egui::{Modifiers, Key, Align2};
 use egui_dock::{NodeIndex, Tree};
+use egui_toast::*;
 
 use crate::{project::Project, scripting::Api, tabs::*};
+
+use crate::Result;
 
 pub struct AnimaApp {
 	tree: Tree<Box<dyn Tab>>,
 	project: Option<Project>,
-	api: Api
+	operations: Vec<Result>,
+	api: Api,
 }
 
 impl AnimaApp {
@@ -30,33 +34,41 @@ impl AnimaApp {
 		let project = None;
 		let api = Api::new();
 
+		let operations = Vec::new();
+
 		macroquad::prelude::request_new_screen_size(1280.0, 720.0);
 
 		Self {
 			tree,
 			project,
+			operations,
 			api
 		}
 	}
 
 	pub fn draw(&mut self) {
+		self.operations.clear();
+
 		egui_macroquad::ui(|egui_ctx| {
 			egui::TopBottomPanel::top("top").show(egui_ctx, |ui| {
 				egui::menu::bar(ui, |ui| {
 					ui.menu_button("File", |ui| {
 						if ui.button("New").clicked() {
-							self.new_project();
+							let result = self.new_project();
+							self.operations.push(result);
 							ui.close_menu();
 						}
 						ui.scope(|ui| {
 							ui.set_enabled(self.project.is_some());
 							if ui.button("Save").clicked() {
-								self.save_project(true).unwrap(); // TODO: Handle err
+								let result = self.save_project(true);
+								self.operations.push(result);
 								ui.close_menu();
 							}
 						});
 						if ui.button("Open").clicked() {
-							self.open_project();
+							let result = self.open_project();
+							self.operations.push(result);
 							ui.close_menu();
 						}
 					});
@@ -83,6 +95,22 @@ impl AnimaApp {
 					}
 				});
 			});
+
+			let mut toasts = Toasts::new()
+			.anchor(Align2::RIGHT_BOTTOM, (-10.0, -10.0))
+			.direction(egui::Direction::BottomUp);
+
+			self.operations.iter().filter(|x| x.is_err()).for_each(|x| {
+				toasts.add(Toast {
+					kind: ToastKind::Error,
+					text: x.as_ref().err().unwrap().as_str().into(),
+					options: ToastOptions::default()
+						.duration_in_seconds(5.0)
+						.show_progress(true)
+				});
+			});
+
+			toasts.show(egui_ctx);
 		});
 
 		egui_macroquad::draw();
@@ -93,7 +121,7 @@ impl AnimaApp {
 	}
 
 	#[cfg(not(target_arch = "wasm32"))]
-	fn new_project(&mut self) {
+	fn new_project(&mut self) -> Result {
 		let future = async {
 			let file = rfd::AsyncFileDialog::new()
 				.add_filter("Anima project file", &["anproj"])
@@ -105,16 +133,19 @@ impl AnimaApp {
 			file.map(|file| file.path().to_owned())
 		};
 
-		let Some(path) = futures::executor::block_on(future) else { return };
+		let path = futures::executor::block_on(future);
+		let path = path.ok_or("Failed selecting project file")?;
 
 		let mut project = Project::default();
 		project.set_file_path(&path);
 		project.assert_default_scene();
 
-		let Ok(json) = serde_json::to_string_pretty(&project) else { return };
-		std::fs::write(&path, json).ok();
-
+		
+		let json = serde_json::to_string_pretty(&project);
+		let json = json.map_err(|x| format!("Failed serializing project:\n{}", x))?;
 		self.set_project(Some(project));
+
+		std::fs::write(&path, json).map_err(|x| format!("Failed writing project to path {:?}:\n{}", &path, x))
 	}
 
 	#[cfg(target_arch = "wasm32")]
@@ -123,8 +154,8 @@ impl AnimaApp {
 	}
 
 	#[cfg(not(target_arch = "wasm32"))]
-	fn save_project(&mut self, use_root: bool) -> Result<(), ()> {
-		let project = self.project.as_mut().ok_or(())?;
+	fn save_project(&mut self, use_root: bool) -> Result {
+		let project = self.project.as_mut().ok_or("No project to save")?;
 
 		if let Some(scene) = project.loaded_scene.as_mut() {
 			scene.get_source().save();
@@ -145,11 +176,12 @@ impl AnimaApp {
 				};
 				futures::executor::block_on(future)
 			}
-		}.ok_or(())?;
+		}.ok_or("Failed selecting project file")?;
 
 		project.set_file_path(&path);
 
-		let json = serde_json::to_string_pretty(project).map_err(|_|())?;
+		let json = serde_json::to_string_pretty(project);
+		let json = json.map_err(|x| format!("Failed serializing project:\n{}", x))?;
 
 		std::fs::write(path, json).ok();
 
@@ -162,7 +194,7 @@ impl AnimaApp {
 	}
 
 	#[cfg(not(target_arch = "wasm32"))]
-	fn open_project(&mut self) {
+	fn open_project(&mut self) -> Result {
 		let future = async {
 			let file = rfd::AsyncFileDialog::new()
 				.add_filter("Anima project file", &["anproj"])
@@ -180,13 +212,17 @@ impl AnimaApp {
 			}
 		};
 
-		let Some((path, Some(data))) = futures::executor::block_on(future) else { return };
-		let Ok(mut project) = serde_json::from_str::<Project>(&data) else { return };
+		let (path, data) = futures::executor::block_on(future).ok_or("Failed selecting project file")?;
+		let data = data.ok_or("Couldn't read data from project file")?;
+		let project = serde_json::from_str::<Project>(&data);
+		let mut project = project.map_err(|x| format!("Failed deserializing project:\n{}", x))?;
 
 		project.set_file_path(&path);
 		project.assert_default_scene();
 
 		self.set_project(Some(project));
+
+		Ok(())
 	}
 
 	#[cfg(target_arch = "wasm32")]

@@ -6,3 +6,5 @@ mod scripting;
 mod tabs;
 mod theme;
 pub use app::AnimaApp;
+
+pub type Result = anyhow::Result<(), String>;
