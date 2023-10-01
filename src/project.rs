@@ -10,11 +10,24 @@ pub struct Project {
 	pub scene_files_relative: Vec<PathBuf>,
 	pub ratio: (u16, u16),
 	root_dir: Option<PathBuf>,
+	project_file: PathBuf
 }
 
 impl Project {
-	pub fn set_root_dir(&mut self, dir: Option<PathBuf>) {
-		self.root_dir = dir;
+	pub fn get_file_path(&self) -> &Path {
+		&self.project_file
+	}
+
+	pub fn set_file_path(&mut self, dir: impl AsRef<Path> + Into<PathBuf>) {
+		let mut owned = dir.as_ref().to_owned();
+
+		self.project_file = owned.clone();
+
+		if owned.is_file() {
+			owned.pop();
+		}
+			
+		self.root_dir = Some(owned);
 	}
 
 	pub fn create_scene(&mut self, name: &str) {
@@ -46,7 +59,7 @@ impl Project {
 		let root_str = root.to_string_lossy();
 		let path_str = path.to_string_lossy();
 
-		let rel_str = root_str.replace(path_str.as_ref(), "");
+		let rel_str = path_str.replace(root_str.as_ref(), "");
 		
 		Ok(PathBuf::from(rel_str))
 	}

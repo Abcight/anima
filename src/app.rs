@@ -1,3 +1,4 @@
+use egui::{Modifiers, Key};
 use egui_dock::{NodeIndex, Tree};
 
 use crate::{project::Project, scripting::Api, tabs::*};
@@ -5,8 +6,7 @@ use crate::{project::Project, scripting::Api, tabs::*};
 pub struct AnimaApp {
 	tree: Tree<Box<dyn Tab>>,
 	project: Option<Project>,
-	api: Api,
-	project_dirty: bool,
+	api: Api
 }
 
 impl AnimaApp {
@@ -35,8 +35,7 @@ impl AnimaApp {
 		Self {
 			tree,
 			project,
-			api,
-			project_dirty: true,
+			api
 		}
 	}
 
@@ -52,7 +51,7 @@ impl AnimaApp {
 						ui.scope(|ui| {
 							ui.set_enabled(self.project.is_some());
 							if ui.button("Save").clicked() {
-								self.save_project();
+								self.save_project(true).unwrap(); // TODO: Handle err
 								ui.close_menu();
 							}
 						});
@@ -77,6 +76,12 @@ impl AnimaApp {
 
 				egui_dock::DockArea::new(&mut self.tree)
 					.show_inside(ui, &mut TabViewer { project, api });
+
+				ui.input_mut(|i| {
+					if i.consume_key(Modifiers::CTRL, Key::S) {
+						self.save_project(true).unwrap(); // TODO: Handle err
+					}
+				});
 			});
 		});
 
@@ -85,7 +90,6 @@ impl AnimaApp {
 
 	fn set_project(&mut self, project: Option<Project>) {
 		self.project = project;
-		self.project_dirty = true;
 	}
 
 	#[cfg(not(target_arch = "wasm32"))]
@@ -103,11 +107,9 @@ impl AnimaApp {
 
 		let Some(path) = futures::executor::block_on(future) else { return };
 
-		let mut project_root = path.clone();
-		project_root.pop();
-
 		let mut project = Project::default();
-		project.set_root_dir(Some(project_root));
+		project.set_file_path(&path);
+		project.assert_default_scene();
 
 		let Ok(json) = serde_json::to_string_pretty(&project) else { return };
 		std::fs::write(&path, json).ok();
@@ -121,28 +123,37 @@ impl AnimaApp {
 	}
 
 	#[cfg(not(target_arch = "wasm32"))]
-	fn save_project(&mut self) {
-		let Some(project) = &mut self.project else { return };
+	fn save_project(&mut self, use_root: bool) -> Result<(), ()> {
+		let project = self.project.as_mut().ok_or(())?;
 
-		let future = async {
-			let file = rfd::AsyncFileDialog::new()
-				.add_filter("Anima project file", &["anproj"])
-				.add_filter("All files", &["*"])
-				.set_directory("/")
-				.save_file()
-				.await;
+		if let Some(scene) = project.loaded_scene.as_mut() {
+			scene.get_source().save();
+		}
 
-			file.map(|file| file.path().to_owned())
-		};
+		let path = match use_root {
+			true => Some(project.get_file_path().to_owned()),
+			false => {
+				let future = async {
+					let file = rfd::AsyncFileDialog::new()
+						.add_filter("Anima project file", &["anproj"])
+						.add_filter("All files", &["*"])
+						.set_directory("/")
+						.save_file()
+						.await;
 
-		let Some(path) = futures::executor::block_on(future) else { return };
+					file.map(|file| file.path().to_owned())
+				};
+				futures::executor::block_on(future)
+			}
+		}.ok_or(())?;
 
-		project.set_root_dir(Some(path.to_owned()));
-		self.project_dirty = true;
+		project.set_file_path(&path);
 
-		let Ok(json) = serde_json::to_string_pretty(project) else { return };
+		let json = serde_json::to_string_pretty(project).map_err(|_|())?;
 
 		std::fs::write(path, json).ok();
+
+		Ok(())
 	}
 
 	#[cfg(target_arch = "wasm32")]
@@ -169,12 +180,10 @@ impl AnimaApp {
 			}
 		};
 
-		let Some((mut path, Some(data))) = futures::executor::block_on(future) else { return };
+		let Some((path, Some(data))) = futures::executor::block_on(future) else { return };
 		let Ok(mut project) = serde_json::from_str::<Project>(&data) else { return };
 
-		path.pop();
-
-		project.set_root_dir(Some(path));
+		project.set_file_path(&path);
 		project.assert_default_scene();
 
 		self.set_project(Some(project));

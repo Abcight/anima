@@ -1,4 +1,3 @@
-use egui::{Key, Modifiers};
 use egui_code_editor::*;
 
 use super::{Tab, TabCtx};
@@ -39,12 +38,6 @@ impl Tab for Editor {
 				.with_syntax(Syntax::lua())
 				.with_numlines(true)
 				.show(ui, scene.get_source());
-		});
-
-		ui.input_mut(|i| {
-			if i.consume_key(Modifiers::CTRL, Key::S) {
-				scene.get_source().save();
-			}
 		});
 	}
 
